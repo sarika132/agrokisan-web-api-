@@ -3,14 +3,15 @@ import { HttpException } from "./exceptions/http-exception";
 import { ApiResponseHelper } from "./utils/apihelper.util";
 import cors from "cors";
 
-// routes
+// import routes
 import userRoutes from "./routes/user.route";
-// import adminUserRoutes from "./routes/admin/user.route";
+import adminUserRoutes from "./routes/admin/user.route";
+import path from "path";
 
 const app: Application = express();
 
 const corsOptions = {
-  origin: "*", // allow all origins for now
+  origin: ["*"], // allow all origins for now
   successStatus: 200,
 };
 app.use(cors(corsOptions));
@@ -18,9 +19,13 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// user Route
+// auth routes
+app.use("/uploads", express.static(path.join(__dirname, "../uploads"))); // serve static files from uploads folder
 app.use("/api/auth", userRoutes);
-// app.use("/api/admin", adminUserRoutes);
+
+// admin Route
+app.use("/api/admin", adminUserRoutes);
+
 
 // global 404 handler (at bottom)
 app.use((req: Request, res: Response) => {

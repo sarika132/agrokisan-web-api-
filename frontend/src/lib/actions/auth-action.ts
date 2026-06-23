@@ -1,8 +1,9 @@
 "use server";
 
 import { RegisterFormData, LoginFormData } from "@/app/(auth)/_schema/schema";
-import { register, login } from "../api/auth";
+import { register, login, whoami, updateProfile } from "../api/auth";
 import { setTokenCookie, storeUserData } from "../cookies";
+import { revalidatePath } from "next/cache";
 
 // REGISTER
 export const handleRegisterUser = async (data: RegisterFormData) => {
@@ -38,3 +39,37 @@ export const handleLoginUser = async (data: LoginFormData) => {
         return { success: false, message: error?.message || "Login failed" };
     }
 };
+
+// UPDATE PROFILE
+export const handleUpdateProfile = async (data: FormData) => {
+    try {
+        const result = await updateProfile(data);
+        if (result.success) {
+            await storeUserData(result.data);
+            revalidatePath("/profile");
+            return { success: true, message: result.message, data: result.data };
+        } else {
+            return {
+                success: false, message: result.message || "Update user failed"
+            };
+        }
+    } catch (error: Error | any) {
+        return { success: false, message: error?.message || "Update user failed" };
+    }
+}
+
+// WHOAMI
+export const handleUserDetails = async () => {
+    try {
+        const result = await whoami();
+        if (result.success) {
+            return { success: true, message: result.message, data: result.data };
+        } else {
+            return {
+                success: false, message: result.message || "Get user details failed"
+            };
+        }
+    } catch (error: Error | any) {
+        return { success: false, message: error?.message || "Get user details failed" };
+    }
+}
