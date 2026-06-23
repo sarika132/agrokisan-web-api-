@@ -14,6 +14,7 @@ const UserMongoSchema: Schema = new Schema<IUser>(
         contactNumber: { type: String, required: true },
         password: { type: String, required: true },
         role: { type: String, enum: ["admin", "user"], default: "user" },
+        profileImage: { type: String, required: false },
     },
     {
         timestamps: true,
