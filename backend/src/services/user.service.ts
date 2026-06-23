@@ -1,5 +1,5 @@
 import { UserMongoRepository } from "../repositories/user.repository";
-import { RegisterUserDTO, LoginUserDTO } from "../dtos/user.dto";
+import { RegisterUserDTO, LoginUserDTO, UpdateUserDTO } from "../dtos/user.dto";
 import { IUser } from "../models/user.model";
 
 import bcrypt from "bcrypt";
@@ -45,5 +45,37 @@ export class UserService {
             { expiresIn: "30d" },
         );
         return { user, token };
+    }
+
+    async updateUser(id: string, userData: UpdateUserDTO): Promise<IUser> {
+        const existingUser = await userRepository.getUserById(id);
+        if (!existingUser) {
+            throw new HttpException(404, "User not found");
+        }
+        if (userData.email && userData.email !== existingUser.email) {
+            const existingEmail = await userRepository.getUserByEmail(userData.email);
+            if (existingEmail) {
+                throw new HttpException(400, "Email already exists");
+            }
+        }
+        if (userData.password) {
+            const currentPassword = (userData as any).currentPassword;
+            if (!currentPassword) {
+                throw new HttpException(400, "Current password is required to set a new password");
+            }
+            const isPasswordValid = await bcrypt.compare(currentPassword, existingUser.password);
+            if (!isPasswordValid) {
+                throw new HttpException(400, "Current password is incorrect");
+            }
+            const hashedPassword = await bcrypt.hash(userData.password, 10);
+            userData.password = hashedPassword;
+        }
+
+        delete (userData as any).currentPassword;
+        const updatedUser = await userRepository.update(id, userData);
+        if (!updatedUser) {
+            throw new HttpException(500, "Failed to update user");
+        }
+        return updatedUser;
     }
 }
