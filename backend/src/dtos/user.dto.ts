@@ -17,3 +17,9 @@ export const LoginUserDTO = UserSchema.pick({
     password: true,
 });
 export type LoginUserDTO = z.infer<typeof LoginUserDTO>;
+
+
+// User update DTO - reuse existing schema and make all fields optional
+export const UpdateUserDTO = UserSchema.omit({ role: true, })
+    .partial().extend({ currentPassword: z.string().optional(), });
+export type UpdateUserDTO = z.infer<typeof UpdateUserDTO>;
