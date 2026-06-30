@@ -8,6 +8,11 @@ export interface IUserRepository {
     getAll(): Promise<IUser[]>;
     update(id: string, user: Partial<IUser>): Promise<IUser | null>;
     delete(id: string): Promise<boolean>;
+    getAllPaginated(
+        page: number,
+        limit: number,
+        search?: string,
+    ): Promise<{ data: IUser[]; total: number }>;
 }
 
 export class UserMongoRepository implements IUserRepository {
@@ -19,20 +24,47 @@ export class UserMongoRepository implements IUserRepository {
         const found = await UserModel.findOne({ email });
         return found;
     }
+
     async createUser(user: Partial<IUser>): Promise<IUser> {
         const created = await UserModel.create(user);
         return created;
     }
+
     async getAll(): Promise<IUser[]> {
         const found = await UserModel.find();
         return found;
     }
+
     async update(id: string, user: Partial<IUser>): Promise<IUser | null> {
         const updated = await UserModel.findByIdAndUpdate(id, user, { new: true });
         return updated;
     }
+
     async delete(id: string): Promise<boolean> {
         const deleted = await UserModel.findByIdAndDelete(id);
         return !!deleted;
+    }
+
+    async getAllPaginated(
+        page: number,
+        limit: number,
+        search?: string,
+    ): Promise<{ data: IUser[]; total: number }> {
+        const query: any = {};
+
+        // if search term provided, match against fullName or email (case insensitive)
+        if (search) {
+            query.$or = [
+                { fullName: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } },
+            ];
+        }
+
+        const total = await UserModel.countDocuments(query);
+        const data = await UserModel.find(query)
+            .skip((page - 1) * limit) // skip records for previous pages
+            .limit(limit); // only return the requested number of records
+
+        return { data, total };
     }
 }
