@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "npx tsx --watch index.ts",
+    "start": "npx tsx index.ts",
     "test": "jest --verbose --detectOpenHandles"
   },
   "keywords": [],
