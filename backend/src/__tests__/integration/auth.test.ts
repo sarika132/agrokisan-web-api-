@@ -15,102 +15,74 @@ describe(
             confirmPassword: 'password123',
         };
 
-        // beforeAll and afterAll hooks to clean up the test user 
-        // from the database
-        // before Test Suite starts
-        beforeAll(
-            async () => {
-                await UserModel.deleteOne({ email: testUser.email });
-            }
-        );
-        // after Test Suite ends
-        afterAll(
-            async () => {
-                await UserModel.deleteOne({ email: testUser.email });
-            }
-        );
+        beforeAll(async () => {
+            await UserModel.deleteOne({ email: testUser.email });
+        });
 
-        // 1. Group test cases for the /api/v1/auth/register endpoint
-        describe(
-            'POST /api/v1/auth/register', // group name
-            () => {
-                // In this same function, 
-                // we can add more test cases for the 
-                // /api/v1/auth/register endpoint
-                // Test case for missing required fields
-                test(
-                    'should validate missing fields', // test case name
-                    async () => { // test function
-                        const res = await request(app)
-                            .post('/api/v1/auth/register')
-                            .send(
-                                {
-                                    fullName: testUser.fullName
-                                }
-                            );
+        afterAll(async () => {
+            await UserModel.deleteOne({ email: testUser.email });
+        });
 
-                        // what client should expect when the request is invalid
-                        expect(res.statusCode).toBe(400);
-                        // the response body should indicate as success, false
-                        expect(res.body.success).toBe(false);
-                    }
-                );
+        // 1. Register endpoint tests here
+        describe("POST /api/auth/register", () => {
+            test("should validate missing fields", async () => {
+                const res = await request(app).post("/api/auth/register").send({
+                    fullName: testUser.fullName,
+                    // missing email, password, contactNumber
+                });
 
-                // Test case for successful user registration
-                test(
-                    'should register new user',
-                    async () => {
-                        const res = await request(app)
-                            .post('/api/v1/auth/register')
-                            .send(testUser);
+                expect(res.statusCode).toBe(400);
+                expect(res.body.success).toBe(false);
+            });
 
-                        // can expect multiple things in the response when the request is successful
-                        expect(res.statusCode).toBe(200);
-                        expect(res.body.success).toBe(true);
-                        expect(res.body.message).toBe('User created successfully');
-                    }
-                );
-            }
-        );
-        // 2. Group test cases for the /api/v1/auth/login endpoint
-        describe(
-            'POST /api/v1/auth/login',
-            () => {
-                test(
-                    'should login with valid credentials',
-                    async () => {
-                        const res = await request(app)
-                            .post('/api/v1/auth/login')
-                            .send(
-                                {
-                                    email: testUser.email,
-                                    password: testUser.password,
-                                }
-                            );
+            test("should register new user", async () => {
+                const res = await request(app).post("/api/auth/register").send(testUser);
 
-                        expect(res.statusCode).toBe(200);
-                        expect(res.body.success).toBe(true);
-                        expect(res.body.data.token).toBeDefined();
-                    }
-                );
+                expect(res.statusCode).toBe(200);
+                expect(res.body.success).toBe(true);
+                expect(res.body.message).toBe("User registered successfully");
+            });
 
-                test(
-                    'should fail with invalid email',
-                    async () => {
-                        const res = await request(app)
-                            .post('/api/v1/auth/login')
-                            .send(
-                                {
-                                    email: 'wrong@example.com',
-                                    password: testUser.password,
-                                }
-                            );
+            test("should return 400 if email already exists", async () => {
+                const res = await request(app).post("/api/auth/register").send(testUser); // same email as above
 
-                        expect(res.statusCode).toBe(400);
-                        expect(res.body.success).toBe(false);
-                    }
-                );
-            }
-        );
-    }
-);
+                expect(res.statusCode).toBe(400);
+                expect(res.body.success).toBe(false);
+                expect(res.body.message).toBe("Email already exists");
+            });
+        });
+
+        // 2. Login endpoint tests here
+        describe("POST /api/auth/login", () => {
+            test("should login with valid credentials", async () => {
+                const res = await request(app).post("/api/auth/login").send({
+                    email: testUser.email,
+                    password: testUser.password,
+                });
+
+                expect(res.statusCode).toBe(200);
+                expect(res.body.success).toBe(true);
+                expect(res.body.data.token).toBeDefined();
+            });
+
+            test("should fail with invalid email", async () => {
+                const res = await request(app).post("/api/auth/login").send({
+                    email: "wrong@example.com",
+                    password: testUser.password,
+                });
+
+                expect(res.statusCode).toBe(400);
+                expect(res.body.success).toBe(false);
+            });
+
+            test("should fail with invalid password", async () => {
+                const res = await request(app).post("/api/auth/login").send({
+                    email: testUser.email,
+                    password: "wrongpassword",
+                });
+
+                expect(res.statusCode).toBe(400);
+                expect(res.body.success).toBe(false);
+            });
+        });
+    });
