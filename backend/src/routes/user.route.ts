@@ -20,4 +20,6 @@ userRouter.put("/update",
     userController.updateUser
 );
 
+
+
 export default userRouter;

@@ -1,7 +1,6 @@
 import { UserMongoRepository } from "../repositories/user.repository";
 import { RegisterUserDTO, LoginUserDTO, UpdateUserDTO } from "../dtos/user.dto";
 import { IUser } from "../models/user.model";
-
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { SECRET_KEY } from "../configs/constant";
