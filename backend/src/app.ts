@@ -2,6 +2,7 @@ import express, { Application, NextFunction, Request, Response } from "express";
 import { HttpException } from "./exceptions/http-exception";
 import { ApiResponseHelper } from "./utils/apihelper.util";
 import cors from "cors";
+import morgan from "morgan";
 
 // import routes
 import userRoutes from "./routes/user.route";
@@ -18,13 +19,14 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(morgan("combined")); // log all requests
 
 // auth routes
 app.use("/uploads", express.static(path.join(__dirname, "../uploads"))); // serve static files from uploads folder
 app.use("/api/auth", userRoutes);
 
 // admin Route
-app.use("/api/admin", adminUserRoutes);
+app.use("/api/admin/users", adminUserRoutes);
 
 
 // global 404 handler (at bottom)

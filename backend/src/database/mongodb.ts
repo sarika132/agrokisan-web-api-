@@ -10,3 +10,14 @@ export const connectToMongoDB = async () => {
         throw error;
     }
 };
+
+export const connectToMongoDBTest = async () => {
+    const testUri = "mongodb://localhost:27017/agrokisan-db_test";
+    try {
+        await mongoose.connect(testUri);
+        console.log("Connected to MongoDB Test");
+    } catch (error) {
+        console.error("Error connecting to MongoDB Test:", error);
+        throw error;
+    }
+};
