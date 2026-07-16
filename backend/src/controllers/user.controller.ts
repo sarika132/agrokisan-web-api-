@@ -94,15 +94,19 @@ export class UserController {
                     400,
                 );
             }
-            // console.log("Parsed update data:", parsedData.data);
+
+            // Exclude role from updates
+            const { role, ...allowedUpdates } = parsedData.data;
+
             if (filename) {
-                parsedData.data.profileImage = "/uploads/" + filename;
+                allowedUpdates.profileImage = "/uploads/" + filename;
             }
 
             const updatedUser = await userService.updateUser(
                 userId as string,
-                parsedData.data,
+                allowedUpdates,
             );
+
             return ApiResponseHelper.success(
                 res,
                 updatedUser,
