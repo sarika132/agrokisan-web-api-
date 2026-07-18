@@ -2,12 +2,28 @@ import express, { Application, NextFunction, Request, Response } from "express";
 import { HttpException } from "./exceptions/http-exception";
 import { ApiResponseHelper } from "./utils/apihelper.util";
 import cors from "cors";
-import morgan from "morgan";
+import path from "path";
 
 // import routes
 import userRoutes from "./routes/user.route";
 import adminUserRoutes from "./routes/admin/user.route";
-import path from "path";
+import collectionRoutes from "./routes/collection.route";
+import admincollectionRoutes from "./routes/admin/collection.route";
+import categoryRoutes from "./routes/category.route";
+import adminCategoryRoutes from "./routes/admin/category.route";
+import seedsRoutes from "./routes/seeds.route";
+import adminSeedsRoutes from "./routes/admin/seeds.route";
+import fertilizersRoutes from "./routes/fertilizers.route";
+import adminFertilizersRoutes from "./routes/admin/fertilizers.route";
+import toolsRoutes from "./routes/tools.route";
+import adminToolsRoutes from "./routes/admin/tools.route";
+import equipmentsRoutes from "./routes/equipments.route";
+import adminEquipmentsRoutes from "./routes/admin/equipments.route";
+import cartRoutes from "./routes/cart.route";
+import adminCartRoutes from "./routes/admin/cart.route";
+import reviewRoutes from "./routes/review.route";
+import adminReviewRoutes from "./routes/admin/review.route";
+import adminDashboardRoutes from "./routes/admin/dashboard.route";
 
 const app: Application = express();
 
@@ -15,19 +31,41 @@ const corsOptions = {
   origin: ["*"], // allow all origins for now
   successStatus: 200,
 };
+
 app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan("combined")); // log all requests
+
+
+// upload routes
+app.use("/uploads", express.static(path.join(__dirname, "../uploads"))); // serve static files from uploads folder
 
 // auth routes
-app.use("/uploads", express.static(path.join(__dirname, "../uploads"))); // serve static files from uploads folder
 app.use("/api/auth", userRoutes);
 
 // admin Route
 app.use("/api/admin/users", adminUserRoutes);
+app.use("/api/admin/collection", admincollectionRoutes);
+app.use("/api/admin/category", adminCategoryRoutes);
+app.use("/api/admin/seeds", adminSeedsRoutes);
+app.use("/api/admin/fertilizers", adminFertilizersRoutes);
+app.use("/api/admin/tools", adminToolsRoutes);
+app.use("/api/admin/equipments", adminEquipmentsRoutes);
+app.use("/api/admin/cart", adminCartRoutes);
+app.use("/api/admin/review", adminReviewRoutes);
+app.use("/api/admin/dashboard", adminDashboardRoutes);
 
+
+// user routes
+app.use("/api/collection", collectionRoutes);
+app.use("/api/category", categoryRoutes);
+app.use("/api/seeds", seedsRoutes);
+app.use("/api/fertilizers", fertilizersRoutes);
+app.use("/api/tools", toolsRoutes);
+app.use("/api/equipments", equipmentsRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/review", reviewRoutes);
 
 // global 404 handler (at bottom)
 app.use((req: Request, res: Response) => {
