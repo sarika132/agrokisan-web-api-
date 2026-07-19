@@ -1,97 +1,145 @@
-import { CartModel, ICart } from "../models/cart.model";
+import { CartMongoRepository } from "../repositories/cart.repository";
+import { AddToCartDTO, UpdateCartDTO } from "../dtos/cart.dto";
+import { ICart } from "../models/cart.model";
+import { HttpException } from "../exceptions/http-exception";
+import { ProductMongoRepository } from "../repositories/products.repository";
 
-export class CartMongoRepository {
-    // create a new cart item
-    async createCartItem(data: Partial<ICart>): Promise<ICart> {
-        const cart = new CartModel(data);
-        return await cart.save();
+const cartRepository = new CartMongoRepository();
+const productRepository = new ProductMongoRepository();
+
+export class CartService {
+    // add a product to cart - calculates totalPrice and generates custom cartId
+    async addToCart(
+        data: AddToCartDTO,
+        customerId: string,
+    ): Promise<ICart> {
+        // check if product exists and is available
+        const product = await productRepository.getProductById(data.productId);
+        if (!product) {
+            throw new HttpException(404, "Product not found");
+        }
+        if (!product.isAvailable) {
+            throw new HttpException(400, "Product is not available");
+        }
+
+        // calculate total price: quantity * current product price
+        const priceAtAdded = product.price;
+        const totalPrice = data.quantity * priceAtAdded;
+
+        // create cart item first to get mongodb _id for generating cartId
+        const cartItem = await cartRepository.createCartItem({
+            customerId,
+            productId: data.productId,
+            quantity: data.quantity,
+            priceAtAdded,
+            totalPrice,
+            status: "active",
+        } as unknown as Partial<ICart>);
+
+        // generate custom readable cartId using last 6 chars of mongodb _id
+        const cartId = "CART" + cartItem._id.toString().slice(-6).toUpperCase();
+
+        // update cart item with the generated cartId
+        await cartRepository.updateCartId(cartItem._id.toString(), cartId);
+
+        return { ...cartItem, cartId } as ICart;
     }
 
     // get a single cart item by mongodb id
-    async getCartItemById(id: string): Promise<ICart | null> {
-        return CartModel.findById(id)
-            .populate("productId", "name price category")
-            .populate("customerId", "fullName email")
-            .lean() as unknown as ICart | null;
+    async getCartItemById(id: string): Promise<ICart> {
+        const cartItem = await cartRepository.getCartItemById(id);
+        if (!cartItem) {
+            throw new HttpException(404, "Cart item not found");
+        }
+        return cartItem;
     }
 
-    // get all active cart items for a specific customer
-    async getCartByCustomerId(customerId: string): Promise<ICart[]> {
-        return CartModel.find({ customerId, status: "active" })
-            .populate("productId", "name price category profileImage")
-            .lean() as unknown as ICart[];
+    // get all active cart items for the logged in customer
+    async getMyCart(customerId: string): Promise<ICart[]> {
+        return await cartRepository.getCartByCustomerId(customerId);
     }
 
-    // get all cart items for admin with pagination, search, and status filter
-    async getAllPaginated(
+    // get all cart items for admin with pagination, search and status filter
+    async getAllCartsPaginated(
         page: number,
         limit: number,
         search?: string,
         status?: string,
     ): Promise<{ data: ICart[]; total: number }> {
-        const skip = (page - 1) * limit;
-        const filter: Record<string, any> = {};
-
-        if (status) {
-            filter.status = status;
-        }
-
-        // search by cartId only (customer search happens via populate,
-        // but simple text search on cartId is most practical here)
-        if (search) {
-            filter.cartId = { $regex: search, $options: "i" };
-        }
-
-        const [data, total] = await Promise.all([
-            CartModel.find(filter)
-                .populate("productId", "name price category")
-                .populate("customerId", "fullName email")
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit)
-                .lean(),
-            CartModel.countDocuments(filter),
-        ]);
-
-        return { data: data as unknown as ICart[], total };
+        return await cartRepository.getAllPaginated(page, limit, search, status);
     }
 
-    // update cart item quantity and recalculate totalPrice
+    // update quantity of a cart item - recalculates totalPrice
     async updateCartItem(
         id: string,
-        quantity: number,
-        totalPrice: number,
-    ): Promise<ICart | null> {
-        return CartModel.findByIdAndUpdate(
+        data: UpdateCartDTO,
+        customerId: string,
+    ): Promise<ICart> {
+        const cartItem = await cartRepository.getCartItemById(id);
+        if (!cartItem) {
+            throw new HttpException(404, "Cart item not found");
+        }
+        if (cartItem.customerId.toString() !== customerId) {
+            throw new HttpException(403, "You can only update your own cart");
+        }
+        if (cartItem.status !== "active") {
+            throw new HttpException(400, "Only active cart items can be updated");
+        }
+
+        const totalPrice = data.quantity * cartItem.priceAtAdded;
+        const updated = await cartRepository.updateCartItem(
             id,
-            { quantity, totalPrice },
-            { new: true, runValidators: true },
-        )
-            .populate("productId", "name price category")
-            .lean() as unknown as ICart | null;
+            data.quantity,
+            totalPrice,
+        );
+        return updated!;
     }
 
-    // update cartId after creation (same pattern as teacher's updateBookingId)
-    async updateCartId(id: string, cartId: string): Promise<void> {
-        await CartModel.findByIdAndUpdate(id, { cartId });
+    // checkout cart item - user initiates checkout
+    async checkoutCartItem(id: string, customerId: string): Promise<ICart> {
+        const cartItem = await cartRepository.getCartItemById(id);
+        if (!cartItem) {
+            throw new HttpException(404, "Cart item not found");
+        }
+        if (cartItem.customerId.toString() !== customerId) {
+            throw new HttpException(403, "You can only checkout your own cart");
+        }
+        if (cartItem.status !== "active") {
+            throw new HttpException(400, "Only active cart items can be checked out");
+        }
+        const updated = await cartRepository.updateStatus(id, "checkedout");
+        return updated!;
     }
 
-    // update status of a cart item
-    async updateStatus(
+    // cancel cart item - user can only cancel active items
+    async cancelCartItem(
         id: string,
-        status: "active" | "checkedout" | "cancelled",
-    ): Promise<ICart | null> {
-        return CartModel.findByIdAndUpdate(
-            id,
-            { status },
-            { new: true },
-        )
-            .populate("productId", "name price category")
-            .lean() as unknown as ICart | null;
+        customerId: string,
+        isAdmin: boolean,
+    ): Promise<ICart> {
+        const cartItem = await cartRepository.getCartItemById(id);
+        if (!cartItem) {
+            throw new HttpException(404, "Cart item not found");
+        }
+        if (!isAdmin && cartItem.customerId.toString() !== customerId) {
+            throw new HttpException(403, "You can only cancel your own cart items");
+        }
+        if (cartItem.status === "checkedout" || cartItem.status === "cancelled") {
+            throw new HttpException(400, "This cart item cannot be cancelled");
+        }
+        const updated = await cartRepository.updateStatus(id, "cancelled");
+        return updated!;
     }
 
-    // remove a cart item permanently
-    async deleteCartItem(id: string): Promise<ICart | null> {
-        return CartModel.findByIdAndDelete(id).lean() as unknown as ICart | null;
+    // remove cart item permanently
+    async deleteCartItem(id: string, customerId: string, isAdmin: boolean): Promise<void> {
+        const cartItem = await cartRepository.getCartItemById(id);
+        if (!cartItem) {
+            throw new HttpException(404, "Cart item not found");
+        }
+        if (!isAdmin && cartItem.customerId.toString() !== customerId) {
+            throw new HttpException(403, "You can only delete your own cart items");
+        }
+        await cartRepository.deleteCartItem(id);
     }
 }
