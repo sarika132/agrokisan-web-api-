@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document, Model, ObjectId } from "mongoose";
-import { ProductType } from "../types/products.type";
+import { ProductType } from "../types/product.type";
 
 export interface IProduct
     extends Omit<ProductType, "categoryId">,
