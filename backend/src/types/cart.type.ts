@@ -1,14 +1,13 @@
 import { z } from "zod";
 
 export const CartSchema = z.object({
-    customerId: z.string().min(1, "Customer is required"),
-    productId: z.string().min(1, "Product is required"),
-    addedDate: z.coerce.date(),
-    totalPrice: z.number().positive("Total price must be greater than 0"),
-    status: z
-        .enum(["confirmed", "checkout", "cancelled"])
-        .default("confirmed"),
-    bookingId: z.string().optional(),
+    cartId: z.string().optional(),
+    customerId: z.string(),
+    productId: z.string(),
+    quantity: z.number().int().min(1, "Quantity must be at least 1"),
+    priceAtAdded: z.number(),
+    totalPrice: z.number(),
+    status: z.enum(["active", "checkedout", "cancelled"]).default("active"),
 });
 
-export type CartType = z.infer<typeof CartSchema>;
+export type CartType = z.infer<typeof CartSchema>; 
