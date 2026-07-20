@@ -1,38 +1,40 @@
-import { CategoryModel, ICategory } from "../models/category.model";
+import { Router } from "express";
+import { CategoryController } from "../controllers/category.controller";
+import {
+    authorizedMiddleware,
+    adminMiddleware,
+} from "../middlewares/authorized.middleware";
 
-export class CategoryMongoRepository {
-    // get all categories
-    async getAll(): Promise<ICategory[]> {
-        return CategoryModel.find().lean() as unknown as ICategory[];
-    }
+const categoryRoute = Router();
+const categoryController = new CategoryController();
 
-    // get single category by id
-    async getCategoryById(id: string): Promise<ICategory | null> {
-        return CategoryModel.findById(id).lean() as unknown as ICategory | null;
-    }
+// GET /api/categories        → all categories
+categoryRoute.get("/", (req, res) =>
+    categoryController.getAllCategories(req, res),
+);
 
-    // get single category by name (used for duplicate check)
-    async getCategoryByName(name: string): Promise<ICategory | null> {
-        return CategoryModel.findOne({ name }).lean() as unknown as ICategory | null;
-    }
+// POST /api/categories       → create category
+categoryRoute.post(
+    "/",
+    authorizedMiddleware,
+    adminMiddleware,
+    (req, res) => categoryController.createCategory(req, res),
+);
 
-    // create a new category
-    async createCategory(data: Partial<ICategory>): Promise<ICategory> {
-        const category = new CategoryModel(data);
-        return await category.save();
-    }
+// PUT /api/categories/:id    → update category
+categoryRoute.put(
+    "/:id",
+    authorizedMiddleware,
+    adminMiddleware,
+    (req, res) => categoryController.updateCategory(req, res),
+);
 
-    // update a category by id
-    async update(id: string, data: Partial<ICategory>): Promise<ICategory | null> {
-        return CategoryModel.findByIdAndUpdate(id, data, {
-            new: true,
-            runValidators: true,
-        }).lean() as unknown as ICategory | null;
-    }
+// DELETE /api/categories/:id → delete category
+categoryRoute.delete(
+    "/:id",
+    authorizedMiddleware,
+    adminMiddleware,
+    (req, res) => categoryController.deleteCategory(req, res),
+);
 
-    // delete a category by id
-    async delete(id: string): Promise<boolean> {
-        const result = await CategoryModel.findByIdAndDelete(id);
-        return !!result;
-    }
-}
+export default categoryRoute;
