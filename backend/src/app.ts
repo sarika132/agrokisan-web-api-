@@ -11,8 +11,8 @@ import collectionRoutes from "./routes/collection.route";
 import admincollectionRoutes from "./routes/admin/collection.route";
 import categoryRoutes from "./routes/category.route";
 import adminCategoryRoutes from "./routes/admin/category.route";
-import productsRoutes from "./routes/products.route";
-import adminProductsRoutes from "./routes/admin/products.route";
+import productRoutes from "./routes/product.route";
+import adminProductRoutes from "./routes/admin/product.route";
 import cartRoutes from "./routes/cart.route";
 import adminCartRoutes from "./routes/admin/cart.route";
 import reviewRoutes from "./routes/review.route";
@@ -42,7 +42,7 @@ app.use("/api/auth", userRoutes);
 app.use("/api/admin/users", adminUserRoutes);
 app.use("/api/admin/collection", admincollectionRoutes);
 app.use("/api/admin/category", adminCategoryRoutes);
-app.use("/api/admin/Products", adminProductsRoutes);
+app.use("/api/admin/product ", adminProductRoutes);
 app.use("/api/admin/cart", adminCartRoutes);
 app.use("/api/admin/review", adminReviewRoutes);
 app.use("/api/admin/dashboard", adminDashboardRoutes);
@@ -51,7 +51,7 @@ app.use("/api/admin/dashboard", adminDashboardRoutes);
 // user routes
 app.use("/api/collection", collectionRoutes);
 app.use("/api/category", categoryRoutes);
-app.use("/api/seeds", productsRoutes);
+app.use("/api/product", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/review", reviewRoutes);
 

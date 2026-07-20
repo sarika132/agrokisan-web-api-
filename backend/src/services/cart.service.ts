@@ -2,7 +2,7 @@ import { CartMongoRepository } from "../repositories/cart.repository";
 import { AddToCartDTO, UpdateCartDTO } from "../dtos/cart.dto";
 import { ICart } from "../models/cart.model";
 import { HttpException } from "../exceptions/http-exception";
-import { ProductMongoRepository } from "../repositories/products.repository";
+import { ProductMongoRepository } from "../repositories/product.repository";
 
 const cartRepository = new CartMongoRepository();
 const productRepository = new ProductMongoRepository();

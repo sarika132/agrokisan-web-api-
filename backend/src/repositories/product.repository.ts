@@ -1,4 +1,4 @@
-import { ProductModel, IProduct } from "../models/products.model";
+import { ProductModel, IProduct } from "../models/product.model";
 
 export class ProductMongoRepository {
     // get all products for public listing

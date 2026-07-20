@@ -23,10 +23,7 @@ export class CategoryService {
     }
 
     // Update category by ID
-    async updateCategory(
-        id: string,
-        data: UpdateCategoryDTO,
-    ): Promise<ICategory> {
+    async updateCategory(id: string, data: UpdateCategoryDTO): Promise<ICategory> {
         const existing = await categoryRepository.getCategoryById(id);
         if (!existing) {
             throw new HttpException(404, "Category not found");
