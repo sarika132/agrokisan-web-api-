@@ -28,9 +28,8 @@ export const authorizedMiddleware =
                 throw new HttpException(401, 'Unauthorized JWT unverified');
             } // make function async
             const user = await userRepository.getUserById(decodedToken.id);
-
-            console.log("USER FROM DB:", user);
             if (!user) throw new HttpException(401, 'Unauthorized user not found');
+
             req.user = user; // attach user to request (like tag)
             return next();
         } catch (err: Error | any) {
@@ -49,7 +48,6 @@ export const adminMiddleware = async (
         if (!req.user) {
             throw new HttpException(401, 'Unauthorized no user info');
         }
-        console.log("ROLE:", req.user?.role);
 
         if (req.user.role !== 'admin') {
             throw new HttpException(403, 'Forbidden not admin');
