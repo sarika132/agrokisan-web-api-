@@ -8,7 +8,6 @@ import {
 const reviewRoute = Router();
 const reviewController = new ReviewController();
 
-// ── Public routes (no auth required) ──────────────────────────
 // GET /api/reviews/featured           → featured reviews for homepage
 reviewRoute.get("/featured", (req, res) =>
     reviewController.getFeaturedReviews(req, res),
