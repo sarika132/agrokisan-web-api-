@@ -7,6 +7,12 @@ import { Request, Response } from "express";
 const userService = new UserService();
 
 export class UserController {
+    resetPassword(arg0: string, resetPassword: any) {
+        throw new Error("Method not implemented.");
+    }
+    sendResetPasswordEmail(arg0: string, sendResetPasswordEmail: any) {
+        throw new Error("Method not implemented.");
+    }
     async registerUser(req: Request, res: Response) {
         try {
             const userData = RegisterUserDTO.safeParse(req.body);

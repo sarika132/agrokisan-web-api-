@@ -13,10 +13,10 @@ const CollectionMongoSchema: Schema = new Schema<ICollection>(
         name: {
             type: String,
             enum: [
-                "Seed Variety",
-                "Fertilizers and Pesticides",
-                "Agriculture Tools",
-                "Agriculture Equipment",
+                "Seeds",
+                "Fertilizers",
+                "Tools",
+                "Equipments",
             ],
             required: true,
             unique: true,

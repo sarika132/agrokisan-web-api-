@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const backendURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+const backendURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8000";
 const isDev = backendURL.startsWith("http://localhost");
 
 const nextConfig: NextConfig = {
@@ -13,7 +13,12 @@ const nextConfig: NextConfig = {
       {
         protocol: "http",
         hostname: "localhost",
-        port: "5000",
+        port: "8000",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "https",
+        hostname: "agrokisan.onrender.com",
         pathname: "/uploads/**",
       },
     ],

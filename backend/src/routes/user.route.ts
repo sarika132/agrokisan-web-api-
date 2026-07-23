@@ -2,16 +2,21 @@ import { UserController } from "../controllers/user.controller";
 import { Router } from "express";
 import { authorizedMiddleware } from "../middlewares/authorized.middleware";
 import { uploads } from "../middlewares/upload.middleware";
+import { authRateLimiter } from "../middlewares/rate-limit.middleware";
 
 const userRouter = Router();
 const userController = new UserController();
 
-userRouter.post("/register", userController.registerUser);
-userRouter.post("/login", userController.loginUser);
+userRouter.post("/register", authRateLimiter, userController.registerUser);
+userRouter.post("/login", authRateLimiter, userController.loginUser);
 
 userRouter.get("/whoami",
     authorizedMiddleware,
     userController.whoami
+);
+userRouter.post(
+    "/request-password-reset",
+    userController.sendResetPasswordEmail,
 );
 
 userRouter.put("/update",
@@ -20,6 +25,7 @@ userRouter.put("/update",
     userController.updateUser
 );
 
-
+userRouter.post("/reset-password/:token", userController.resetPassword);
 
 export default userRouter;
+
