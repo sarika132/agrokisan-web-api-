@@ -1,12 +1,7 @@
 import { z } from "zod";
 
 export const CategorySchema = z.object({
-    name: z.enum([
-        "Seeds",
-        "Fertilizers",
-        "Tools",
-        "Equipments"
-    ]),
+    name: z.string().min(1, "Name is required"),
     description: z.string().min(1, "Description is required"),
 });
 

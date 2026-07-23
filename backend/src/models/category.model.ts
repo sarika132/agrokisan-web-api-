@@ -16,6 +16,7 @@ const CategoryMongoSchema: Schema = new Schema<ICategory>(
                 "Fertilizers and Pesticides",
                 "Agriculture Tools",
                 "Agriculture Equipment",
+                "Vegetable Seeds",
             ],
             required: true,
             unique: true,

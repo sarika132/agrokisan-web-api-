@@ -42,7 +42,7 @@ app.use("/api/auth", userRoutes);
 app.use("/api/admin/users", adminUserRoutes);
 app.use("/api/admin/collection", admincollectionRoutes);
 app.use("/api/admin/category", adminCategoryRoutes);
-app.use("/api/admin/product ", adminProductRoutes);
+app.use("/api/admin/product", adminProductRoutes);
 app.use("/api/admin/cart", adminCartRoutes);
 app.use("/api/admin/review", adminReviewRoutes);
 app.use("/api/admin/dashboard", adminDashboardRoutes);
