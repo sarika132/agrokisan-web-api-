@@ -6,51 +6,28 @@ import { Request, Response } from "express";
 
 const userService = new UserService();
 
-// query params interface for paginated user list
-interface QueryParams {
-    page?: string;
-    limit?: string;
-    search?: string;
-}
-
-export class AdminUserController {
-    // GET /api/v1/admin/users - get all users with pagination and search
-    async getAllUserPaginated(req: Request, res: Response) {
-        try {
-            const { page, limit, search }: QueryParams = req.query;
-            const { data, pagination } = await userService.getAllUserPaginated(
-                page,
-                limit,
-                search,
-            );
-            return ApiResponseHelper.success(
-                res,
-                data,
-                "Users retrieved successfully",
-                200,
-                pagination,
-            );
-        } catch (error: Error | any | unknown) {
-            return ApiResponseHelper.error(
-                res,
-                error.message || "Internal Server Error",
-                error.status || 500,
-            );
-        }
+export class UserController {
+    resetPassword(arg0: string, resetPassword: any) {
+        throw new Error("Method not implemented.");
     }
-
-    // GET /api/v1/admin/users/:id - get single user by id
-    async getUserById(req: Request, res: Response) {
+    sendResetPasswordEmail(arg0: string, sendResetPasswordEmail: any) {
+        throw new Error("Method not implemented.");
+    }
+    async registerUser(req: Request, res: Response) {
         try {
-            const userId = req.params.id as string;
-            if (!userId) {
-                return ApiResponseHelper.error(res, "User ID is required", 400);
+            const userData = RegisterUserDTO.safeParse(req.body);
+            if (!userData.success) {
+                return ApiResponseHelper.error(
+                    res,
+                    z.prettifyError(userData.error),
+                    400,
+                );
             }
-            const user = await userService.getUserById(userId);
+            const user = await userService.registerUser(userData.data);
             return ApiResponseHelper.success(
                 res,
                 user,
-                "User retrieved successfully",
+                "User registered successfully",
             );
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(
@@ -61,19 +38,22 @@ export class AdminUserController {
         }
     }
 
-    // POST /api/v1/admin/users - admin creates a user with role assignment
-    async createUser(req: Request, res: Response) {
+    async loginUser(req: Request, res: Response) {
         try {
-            const userData = CreateUserDTOAdmin.safeParse(req.body);
-            if (!userData.success) {
+            const parsedData = LoginUserDTO.safeParse(req.body);
+            if (!parsedData.success) {
                 return ApiResponseHelper.error(
                     res,
-                    z.prettifyError(userData.error),
+                    z.prettifyError(parsedData.error),
                     400,
                 );
             }
-            const user = await userService.createUser(userData.data);
-            return ApiResponseHelper.success(res, user, "User created successfully");
+            const { user, token } = await userService.loginUser(parsedData.data);
+            return ApiResponseHelper.success(
+                res,
+                { user, token },
+                "Login successful",
+            );
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(
                 res,
@@ -83,92 +63,61 @@ export class AdminUserController {
         }
     }
 
-    // PUT /api/v1/admin/users/:id - admin updates a user
+    // Whoami
+    async whoami(req: Request, res: Response) {
+        try {
+            const user = req.user;
+            if (!user) {
+                return ApiResponseHelper.error(res, "User not found", 404);
+            }
+            return ApiResponseHelper.success(res, user, "User retrieved successfully",
+            );
+        }
+        catch (error: Error | any | unknown) {
+            return ApiResponseHelper.error(
+                res,
+                error.message || "Internal Server Error",
+                error.status || 500
+            );
+        }
+    }
+
+    // Update logged in user
     async updateUser(req: Request, res: Response) {
         try {
-            const userId = req.params.id as string;
-            const userData = UpdateUserDTO.safeParse(req.body);
-            if (!userData.success) {
+            const userId = req.user?._id;
+            const filename = req.file?.filename;
+
+            if (!userId) {
+                return ApiResponseHelper.error(res, "Unauthorized", 401);
+            }
+
+            const parsedData = UpdateUserDTO.safeParse(req.body);
+            if (!parsedData.success) {
                 return ApiResponseHelper.error(
                     res,
-                    z.prettifyError(userData.error),
+                    z.prettifyError(parsedData.error),
                     400,
                 );
             }
 
-            // set image url if file was uploaded via multer
-            if (req.file) {
-                userData.data.imageUrl = "/uploads/" + req.file.filename;
+            // Exclude role from updates
+            const { role, ...allowedUpdates } = parsedData.data;
+
+            if (filename) {
+                allowedUpdates.profileImage = "/uploads/" + filename;
             }
 
-            const updatedUser = await userService.updateUser(userId, userData.data);
+            const updatedUser = await userService.updateUser(
+                userId as string,
+                allowedUpdates,
+            );
+
             return ApiResponseHelper.success(
                 res,
                 updatedUser,
                 "User updated successfully",
             );
-        } catch (error: Error | any | unknown) {
-            return ApiResponseHelper.error(
-                res,
-                error.message || "Internal Server Error",
-                error.status || 500,
-            );
-        }
-    }
-
-    // PUT /api/v1/admin/users/:id/password - admin updates a user's password
-    async updatePassword(req: Request, res: Response) {
-        try {
-            const userId = req.params.id as string;
-            const userData = UpdatePasswordDTO.safeParse(req.body);
-            if (!userData.success) {
-                return ApiResponseHelper.error(
-                    res,
-                    z.prettifyError(userData.error),
-                    400,
-                );
-            }
-
-            // verify current password before allowing change
-            const isValid = await userService.checkPassword(
-                userId,
-                userData.data.currentPassword,
-            );
-            if (!isValid) {
-                return ApiResponseHelper.error(
-                    res,
-                    "Current password is incorrect",
-                    400,
-                );
-            }
-
-            // reuse updateUser service - just pass the new password
-            const updatedUser = await userService.updateUser(userId, {
-                password: userData.data.newPassword,
-            });
-            return ApiResponseHelper.success(
-                res,
-                updatedUser,
-                "Password updated successfully",
-            );
-        } catch (error: Error | any | unknown) {
-            return ApiResponseHelper.error(
-                res,
-                error.message || "Internal Server Error",
-                error.status || 500,
-            );
-        }
-    }
-
-    // DELETE /api/v1/admin/users/:id - admin deletes a user
-    async deleteUser(req: Request, res: Response) {
-        try {
-            const userId = req.params.id as string;
-            const deleted = await userService.deleteUser(userId);
-            if (!deleted) {
-                return ApiResponseHelper.error(res, "User not found", 404);
-            }
-            return ApiResponseHelper.success(res, null, "User deleted successfully");
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(
                 res,
