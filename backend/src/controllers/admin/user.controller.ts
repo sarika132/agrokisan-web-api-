@@ -6,11 +6,8 @@ import { Request, Response } from "express";
 import { CreateUserDTOAdmin, UpdateUserDTO, UpdatePasswordDTO } from "../../dtos/user.dto";
 
 // query params interface for paginated user list
-interface QueryParams {
-    page?: string;
-    limit?: string;
-    search?: string;
-}
+interface QueryParams { page?: string; limit?: string; search?: string; }
+
 const userService = new UserService();
 // GET /api/v1/admin/users - get all users
 export class AdminUserController {
