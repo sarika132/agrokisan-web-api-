@@ -24,4 +24,4 @@ adminReviewRoute.delete(
     adminReviewController.deleteReview,
 );
 
-export default adminReviewRoute;git add.
+export default adminReviewRoute;
