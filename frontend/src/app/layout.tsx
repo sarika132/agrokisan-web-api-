@@ -1,9 +1,12 @@
 // src/app/layout.tsx
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Poppins, Geist } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/UI_UX/sonner";
 import { AuthProvider } from "@/lib/context/AuthContext";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -24,7 +27,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${poppins.className} h-full antialiased`}
+      className={cn("h-full", "antialiased", poppins.className, "font-sans", geist.variable)}
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>
