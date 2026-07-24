@@ -6,7 +6,7 @@ import { Toaster } from "@/components/UI_UX/sonner";
 import { AuthProvider } from "@/lib/context/AuthContext";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
 const poppins = Poppins({
   subsets: ["latin"],
