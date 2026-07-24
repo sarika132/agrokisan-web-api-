@@ -15,7 +15,7 @@ export class CollectionMongoRepository {
 
     // get single collection by name (used for duplicate check)
     async getCollectionByName(name: string): Promise<ICollection | null> {
-        return CollectionModel.findOne({ name })
+        return CollectionModel.findOne({ name: name as any })
             .lean() as unknown as ICollection | null;
     }
 

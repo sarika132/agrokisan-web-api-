@@ -48,7 +48,16 @@ describe(
             testUserId = loginRes.body.data._id;
 
             // create a test product directly in DB (product creation is admin only)
+            const testProduct = {
+                name: "Test Seed",
+                description: "Test seed for cart integration test",
+                price: 500,
+                unit: "kg" as const,        // ← tells TypeScript this is the literal "kg" not just string
+                stock: 100,
+                isAvailable: true,
+            };
             const product = await ProductModel.create(testProduct);
+            if (!product) throw new Error("Failed to create test product");
             testProductId = product._id.toString();
         });
 
