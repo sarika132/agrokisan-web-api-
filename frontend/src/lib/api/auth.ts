@@ -46,3 +46,31 @@ export const updateProfile = async (data: any) => {
         );
     }
 };
+
+// request password reset email
+export const requestPasswordReset = async (email: string) => {
+    try {
+        const response = await axiosInstance.post(API.AUTH.REQUEST_PASSWORD_RESET, {
+            email,
+        });
+        return response.data;
+    } catch (error: Error | any) {
+        throw new Error(
+            error?.response?.data?.message || "Failed to request password reset",
+        );
+    }
+};
+
+// reset password using token from email link
+export const resetPassword = async (token: string, newPassword: string) => {
+    try {
+        const response = await axiosInstance.post(API.AUTH.RESET_PASSWORD(token), {
+            newPassword,
+        });
+        return response.data;
+    } catch (error: Error | any) {
+        throw new Error(
+            error?.response?.data?.message || "Failed to reset password",
+        );
+    }
+};

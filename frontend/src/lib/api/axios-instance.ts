@@ -11,20 +11,18 @@ const axiosInstance = axios.create({
     },
 });
 
-
+// Automatically attach JWT token to every request
 axiosInstance.interceptors.request.use(
     async (config) => {
         const token = await getTokenCookie();
-
-        console.log("TOKEN FROM COOKIE:", token);
-
         if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+            config.headers["Authorization"] = `Bearer ${token}`;
         }
-
         return config;
     },
-    (error) => Promise.reject(error)
+    (error) => {
+        return Promise.reject(error);
+    },
 );
 
-export default axiosInstance;
+export default axiosInstance; 
