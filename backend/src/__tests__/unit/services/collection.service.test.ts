@@ -8,11 +8,11 @@ describe("Unit: CollectionService", () => {
     let collectionId: string;
 
     beforeAll(async () => {
-        await CollectionModel.deleteMany({ name: "Agriculture Equipment" });
+        await CollectionModel.deleteMany({ name: "Agriculture Equipment" as any });
     });
 
     afterAll(async () => {
-        await CollectionModel.deleteMany({ name: "Agriculture Equipment" });
+        await CollectionModel.deleteMany({ name: "Agriculture Equipment" as any });
     });
 
     test("should create a collection", async () => {

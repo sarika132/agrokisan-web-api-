@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { AdminCategoryController } from "../../../controllers/admin/category.controller";
 import { CategoryModel } from "../../../models/category.model";
+import { AdminCategoryController } from "../../../controllers/admin/category.collection";
 
 // helper to create a fake Express response with jest spies
 const mockResponse = (): Response => {

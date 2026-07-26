@@ -8,11 +8,11 @@ describe("Unit: CollectionMongoRepository", () => {
     let collectionId: string;
 
     beforeAll(async () => {
-        await CollectionModel.deleteMany({ name: "Agriculture Tools" });
+        await CollectionModel.deleteMany({ name: "Agriculture Tools" as any });
     });
 
     afterAll(async () => {
-        await CollectionModel.deleteMany({ name: "Agriculture Tools" });
+        await CollectionModel.deleteMany({ name: "Agriculture Tools" as any });
     });
 
     test("should create a collection", async () => {
