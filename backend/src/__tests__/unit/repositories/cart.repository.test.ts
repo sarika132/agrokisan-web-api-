@@ -36,6 +36,7 @@ describe("Unit: CartMongoRepository", () => {
             unit: "kg" as const,
             stock: 100,
             isAvailable: true,
+            categoryId: new mongoose.Types.ObjectId() as any,
         });
         productId = product._id.toString();
     });

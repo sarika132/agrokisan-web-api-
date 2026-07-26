@@ -38,6 +38,7 @@ describe("Unit: CartService", () => {
             unit: "kg" as const,
             stock: 50,
             isAvailable: true,
+            categoryId: new mongoose.Types.ObjectId() as any,
         });
         availableProductId = availableProduct._id.toString();
 
@@ -48,6 +49,7 @@ describe("Unit: CartService", () => {
             unit: "kg" as const,
             stock: 0,
             isAvailable: false,
+            categoryId: new mongoose.Types.ObjectId() as any,
         });
         unavailableProductId = unavailableProduct._id.toString();
     });

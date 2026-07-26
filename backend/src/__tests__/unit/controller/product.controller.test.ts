@@ -25,6 +25,7 @@ describe("Unit: ProductController", () => {
             unit: "kg" as const,
             stock: 30,
             isAvailable: true,
+            categoryId: new mongoose.Types.ObjectId() as any,
         });
         productId = product._id.toString();
     });

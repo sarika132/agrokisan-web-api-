@@ -3,6 +3,7 @@ import { CartController } from "../../../controllers/cart.controller";
 import { CartModel } from "../../../models/cart.model";
 import { ProductModel } from "../../../models/product.model";
 import { UserModel } from "../../../models/user.model";
+import mongoose from "mongoose";
 
 // helper to create a fake Express response with jest spies
 const mockResponse = (): Response => {
@@ -44,6 +45,7 @@ describe("Unit: CartController", () => {
             unit: "kg" as const,
             stock: 50,
             isAvailable: true,
+            categoryId: new mongoose.Types.ObjectId() as any,
         });
         productId = product._id.toString();
     });

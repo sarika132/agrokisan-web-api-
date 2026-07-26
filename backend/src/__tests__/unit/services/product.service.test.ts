@@ -27,6 +27,7 @@ describe("Unit: ProductService", () => {
             unit: "kg" as const,
             stock: 50,
             isAvailable: true,
+            categoryId: new mongoose.Types.ObjectId() as any,
         } as any);
         expect(product).toBeDefined();
         expect(product.name).toBe("Service Test Product");
