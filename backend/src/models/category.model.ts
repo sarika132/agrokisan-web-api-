@@ -11,15 +11,11 @@ const CategoryMongoSchema: Schema = new Schema<ICategory>(
     {
         name: {
             type: String,
-            enum: [
-                "Seed Variety",
-                "Fertilizers and Pesticides",
-                "Agriculture Tools",
-                "Agriculture Equipment",
-                "Vegetable Seeds",
-            ],
-            required: true,
-            unique: true,
+            name: {
+                type: String,
+                required: true,
+            },
+
         },
         description: { type: String, required: true },
     },

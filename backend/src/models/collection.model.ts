@@ -12,14 +12,7 @@ const CollectionMongoSchema: Schema = new Schema<ICollection>(
         // collection name - must be one of the 4 AgroKisan categories
         name: {
             type: String,
-            enum: [
-                "Seeds",
-                "Fertilizers",
-                "Tools",
-                "Equipments",
-            ],
             required: true,
-            unique: true,
         },
         // collection description
         description: { type: String, required: true },
