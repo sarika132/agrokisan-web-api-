@@ -17,11 +17,11 @@ describe("Unit: AdminCollectionController", () => {
     let collectionId: string;
 
     beforeAll(async () => {
-        await CollectionModel.deleteMany({ name: "Fertilizers and Pesticides" });
+        await CollectionModel.deleteMany({ name: "Fertilizers and Pesticides" as any });
     });
 
     afterAll(async () => {
-        await CollectionModel.deleteMany({ name: "Fertilizers and Pesticides" });
+        await CollectionModel.deleteMany({ name: "Fertilizers and Pesticides" as any });
     });
 
     describe("getAllCollections", () => {
