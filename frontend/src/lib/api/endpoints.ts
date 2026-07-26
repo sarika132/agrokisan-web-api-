@@ -17,76 +17,77 @@ export const API = {
             UPDATE_PASSWORD: (id: string) => `/api/admin/users/${id}/password`,
             DELETE: (id: string) => `/api/admin/users/${id}`,
         },
-        // brand endpoints
-        BRANDS: {
-            GET_ALL: "/api/admin/brand",
-            CREATE: "/api/admin/brand/create",
-            UPDATE: (id: string) => `/api/admin/brand/update/${id}`,
-            DELETE: (id: string) => `/api/admin/brand/delete/${id}`,
+
+        // COLLECTIONS
+        COLLECTIONS: {
+            GET_ALL: "/api/admin/collection",
+            CREATE: "/api/admin/collection/create",
+            UPDATE: (id: string) => `/api/admin/collection/update/${id}`,
+            DELETE: (id: string) => `/api/admin/collection/delete/${id}`,
         },
-        // category endpoints
+        // CATEGORIES 
         CATEGORIES: {
             GET_ALL: "/api/admin/category",
             CREATE: "/api/admin/category/create",
             UPDATE: (id: string) => `/api/admin/category/update/${id}`,
             DELETE: (id: string) => `/api/admin/category/delete/${id}`,
         },
-        // vehicle endpoints - admin manages vehicles
-        VEHICLES: {
-            GET_ALL: "/api/admin/vehicle",
-            GET_BY_ID: (id: string) => `/api/admin/vehicle/${id}`,
-            CREATE: "/api/admin/vehicle/create",
-            UPDATE: (id: string) => `/api/admin/vehicle/update/${id}`,
-            UPDATE_AVAILABILITY: (id: string) => `/api/admin/vehicle/update/${id}`,
-            DELETE: (id: string) => `/api/admin/vehicle/delete/${id}`,
+        // PRODUCTS
+        PRODUCTS: {
+            GET_ALL: "/api/admin/product",
+            GET_BY_ID: (id: string) => `/api/admin/product/${id}`,
+            CREATE: "/api/admin/product/create",
+            UPDATE: (id: string) => `/api/admin/product/update/${id}`,
+            UPDATE_AVAILABILITY: (id: string) => `/api/admin/product/update/${id}`,
+            DELETE: (id: string) => `/api/admin/product/delete/${id}`,
         },
-        // booking endpoints - admin manages bookings
-        BOOKINGS: {
-            GET_ALL: "/api/admin/booking",
-            GET_BY_ID: (id: string) => `/api/admin/booking/${id}`,
-            CONFIRM: (id: string) => `/api/admin/booking/confirm/${id}`,
-            COMPLETE: (id: string) => `/api/admin/booking/complete/${id}`,
-            CANCEL: (id: string) => `/api/admin/booking/cancel/${id}`,
+        // CART
+        CART: {
+            GET_ALL: "/api/admin/cart",
+            GET_BY_ID: (id: string) => `/api/admin/cart/${id}`,
+            CANCEL: (id: string) => `/api/admin/cart/cancel/${id}`,
+            DELETE: (id: string) => `/api/admin/cart/delete/${id}`,
         },
-        // review endpoints - admin can view and delete reviews
+        //REVIEWS 
         REVIEWS: {
             GET_ALL: "/api/admin/review",
             DELETE: (id: string) => `/api/admin/review/delete/${id}`,
         },
-        // dashboard endpoints - admin stats
+        // DASHBOARD 
         DASHBOARD: {
             STATS: "/api/admin/dashboard/stats",
         },
     },
-    // public endpoints - no auth needed
-    PUBLIC: {
-        BRANDS: "/api/brand",
+    // 
+    landing: {
+        COLLECTIONS: "/api/collection",
+        COLLECTION_BY_ID: (id: string) => `/api/collection/${id}`,
         CATEGORIES: "/api/category",
-        VEHICLES: "/api/vehicle",
-        VEHICLE_BY_ID: (id: string) => `/api/vehicle/${id}`,
+        PRODUCTS: "/api/product",
+        PRODUCT_BY_ID: (id: string) => `/api/product/${id}`,
+        PRODUCTS_SEARCH: "/api/product/search",
+        PRODUCTS_BY_CATEGORY: "/api/product/category",
+        PRODUCTS_BY_COLLECTION: "/api/product/collection",
+        REVIEWS_BY_PRODUCT: (productId: string) => `/api/review/product/${productId}`,
         FEATURED_REVIEWS: "/api/review/featured",
     },
-    // user booking endpoints - requires auth
+    //  USER endpoints
     USER: {
-        BOOKINGS: {
-            CREATE: "/api/booking/create",
-            GET_MY_BOOKINGS: "/api/booking/my-bookings",
-            GET_BY_ID: (id: string) => `/api/booking/${id}`,
-            CANCEL: (id: string) => `/api/booking/cancel/${id}`,
+        // CART
+        CART: {
+            CREATE: "/api/cart",
+            GET_MY_CART: "/api/cart/my",
+            GET_BY_ID: (id: string) => `/api/cart/${id}`,
+            UPDATE: (id: string) => `/api/cart/${id}`,
+            CANCEL: (id: string) => `/api/cart/${id}/cancel`,
+            DELETE: (id: string) => `/api/cart/${id}`,
         },
-        // review endpoints - user manages their own reviews
+        // REVIEWS 
         REVIEWS: {
-            CREATE: "/api/review/create",
-            GET_BY_VEHICLE: (vehicleId: string) => `/api/review/vehicle/${vehicleId}`,
-            UPDATE: (id: string) => `/api/review/update/${id}`,
-            DELETE: (id: string) => `/api/review/delete/${id}`,
-        },
-        // favourite endpoints - user manages their own favourites
-        FAVOURITES: {
-            ADD: "/api/favourite/add",
-            GET_MY_FAVOURITES: "/api/favourite/my-favourites",
-            CHECK: (vehicleId: string) => `/api/favourite/check/${vehicleId}`,
-            REMOVE: (vehicleId: string) => `/api/favourite/remove/${vehicleId}`,
+            CREATE: "/api/review",
+            GET_BY_PRODUCT: (productId: string) => `/api/review/product/${productId}`, // ✅ GET_BY_VEHICLE → GET_BY_PRODUCT
+            UPDATE: (id: string) => `/api/review/${id}`,
+            DELETE: (id: string) => `/api/review/${id}`,
         },
     },
 };
