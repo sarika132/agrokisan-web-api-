@@ -3,6 +3,7 @@ import { CartService } from "../../../services/cart.service";
 import { ProductModel } from "../../../models/product.model";
 import { CartModel } from "../../../models/cart.model";
 import { UserModel } from "../../../models/user.model";
+import "../../../models/category.model";
 
 // Unit tests for CartService - covers price calculation and status transition rules
 describe("Unit: CartService", () => {

@@ -4,14 +4,12 @@ export class ProductMongoRepository {
     // get all products for public listing
     async getAll(): Promise<IProduct[]> {
         return ProductModel.find({ isAvailable: true })
-            .populate("categoryId", "name")
             .lean() as unknown as IProduct[];
     }
 
     // get single product by id
     async getProductById(id: string): Promise<IProduct | null> {
         return ProductModel.findById(id)
-            .populate("categoryId", "name")
             .lean() as unknown as IProduct | null;
     }
 
@@ -27,7 +25,6 @@ export class ProductMongoRepository {
             new: true,
             runValidators: true,
         })
-            .populate("categoryId", "name")
             .lean() as unknown as IProduct | null;
     }
 

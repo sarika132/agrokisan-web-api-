@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { ProductService } from "../../../services/product.service";
 import { ProductModel } from "../../../models/product.model";
+import { CategoryModel } from "../../../models/category.model";
 
 // Unit tests for ProductService
 describe("Unit: ProductService", () => {

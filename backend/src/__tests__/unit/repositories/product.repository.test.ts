@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { ProductMongoRepository } from "../../../repositories/product.repository";
 import { ProductModel } from "../../../models/product.model";
+import { CategoryModel } from "../../../models/category.model";
 
 // Unit tests for ProductMongoRepository
 describe("Unit: ProductMongoRepository", () => {

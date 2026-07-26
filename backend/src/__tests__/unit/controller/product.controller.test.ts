@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { ProductController } from "../../../controllers/product.controller";
 import { ProductModel } from "../../../models/product.model";
+import { CategoryModel } from "../../../models/category.model";
 
 // helper to create a fake Express response with jest spies
 const mockResponse = (): Response => {
