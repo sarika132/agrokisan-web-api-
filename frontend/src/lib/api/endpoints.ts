@@ -1,10 +1,10 @@
-// centralized path definations for API endpoints
 export const API = {
     AUTH: {
         REGISTER: "/api/auth/register",
         LOGIN: "/api/auth/login",
         WHOAMI: "/api/auth/whoami",
         UPDATE: "/api/auth/update",
+        CHANGE_PASSWORD: "/api/auth/change-password",
         REQUEST_PASSWORD_RESET: "/api/auth/request-password-reset",
         RESET_PASSWORD: (token: string) => `/api/auth/reset-password/${token}`,
     },
@@ -25,16 +25,16 @@ export const API = {
             UPDATE: (id: string) => `/api/admin/collection/update/${id}`,
             DELETE: (id: string) => `/api/admin/collection/delete/${id}`,
         },
-        // CATEGORIES 
+        // CATEGORIES – corrected to admin routes
         CATEGORIES: {
-            GET_ALL: "/api/admin/category",
-            CREATE: "/api/admin/category/create",
-            UPDATE: (id: string) => `/api/admin/category/update/${id}`,
-            DELETE: (id: string) => `/api/admin/category/delete/${id}`,
+            GET_ALL: "/api/admin/category",                 // GET all (admin list)
+            CREATE: "/api/admin/category/create",           // POST create
+            UPDATE: (id: string) => `/api/admin/category/update/${id}`, // PUT update
+            DELETE: (id: string) => `/api/admin/category/delete/${id}`, // DELETE delete
         },
         // PRODUCTS
         PRODUCTS: {
-            GET_ALL: "/api/admin/product",
+            GET_ALL: "/api/admin/product",                // admin paginated list (GET)
             GET_BY_ID: (id: string) => `/api/admin/product/${id}`,
             CREATE: "/api/admin/product/create",
             UPDATE: (id: string) => `/api/admin/product/update/${id}`,
@@ -45,6 +45,8 @@ export const API = {
         CART: {
             GET_ALL: "/api/admin/cart",
             GET_BY_ID: (id: string) => `/api/admin/cart/${id}`,
+            GET_BY_CUSTOMER: (customerId: string) => `/api/admin/cart/customer/${customerId}`,
+            UPDATE_STATUS: (id: string) => `/api/admin/cart/${id}/status`,
             CANCEL: (id: string) => `/api/admin/cart/cancel/${id}`,
             DELETE: (id: string) => `/api/admin/cart/delete/${id}`,
         },
@@ -59,17 +61,17 @@ export const API = {
         },
     },
     // 
-    landing: {
-        COLLECTIONS: "/api/collection",
-        COLLECTION_BY_ID: (id: string) => `/api/collection/${id}`,
-        CATEGORIES: "/api/category",
-        PRODUCTS: "/api/product",
-        PRODUCT_BY_ID: (id: string) => `/api/product/${id}`,
-        PRODUCTS_SEARCH: "/api/product/search",
-        PRODUCTS_BY_CATEGORY: "/api/product/category",
-        PRODUCTS_BY_COLLECTION: "/api/product/collection",
-        REVIEWS_BY_PRODUCT: (productId: string) => `/api/review/product/${productId}`,
-        FEATURED_REVIEWS: "/api/review/featured",
+    public: {
+        COLLECTIONS: "/api/collections",    // plural public GET
+        COLLECTION_BY_ID: (id: string) => `/api/collections/${id}`,
+        CATEGORIES: "/api/categories",      // plural public GET
+        PRODUCTS: "/api/products",          // plural public GET
+        PRODUCT_BY_ID: (id: string) => `/api/products/${id}`,
+        PRODUCTS_SEARCH: "/api/products/search",
+        PRODUCTS_BY_CATEGORY: "/api/products/category",
+        PRODUCTS_BY_COLLECTION: "/api/products/collection",
+        REVIEWS_BY_PRODUCT: (productId: string) => `/api/reviews/product/${productId}`,
+        FEATURED_REVIEWS: "/api/reviews/featured",
     },
     //  USER endpoints
     USER: {
@@ -84,10 +86,10 @@ export const API = {
         },
         // REVIEWS 
         REVIEWS: {
-            CREATE: "/api/review",
-            GET_BY_PRODUCT: (productId: string) => `/api/review/product/${productId}`, // ✅ GET_BY_VEHICLE → GET_BY_PRODUCT
-            UPDATE: (id: string) => `/api/review/${id}`,
-            DELETE: (id: string) => `/api/review/${id}`,
+            CREATE: "/api/reviews",
+            GET_BY_PRODUCT: (productId: string) => `/api/reviews/product/${productId}`,
+            UPDATE: (id: string) => `/api/reviews/${id}`,
+            DELETE: (id: string) => `/api/reviews/${id}`,
         },
     },
 };

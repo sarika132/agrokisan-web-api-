@@ -9,11 +9,17 @@ describe("Unit: ProductMongoRepository", () => {
     let productId: string;
 
     beforeAll(async () => {
-        await ProductModel.deleteMany({ name: { $in: ["Repo Test Product 2", "Repo Test Product 2 Updated"] } });
+        // Ensure Category model is registered
+        await CategoryModel.findOne({});
+        await ProductModel.deleteMany({
+            name: { $in: ["Repo Test Product 2", "Repo Test Product 2 Updated"] },
+        });
     });
 
     afterAll(async () => {
-        await ProductModel.deleteMany({ name: { $in: ["Repo Test Product 2", "Repo Test Product 2 Updated"] } });
+        await ProductModel.deleteMany({
+            name: { $in: ["Repo Test Product 2", "Repo Test Product 2 Updated"] },
+        });
     });
 
     test("should create a product", async () => {

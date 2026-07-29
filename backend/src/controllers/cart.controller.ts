@@ -1,20 +1,14 @@
 import { CartService } from "../services/cart.service";
 import { z } from "zod";
-import { AddToCartDTO, UpdateCartDTO, UpdateCartStatusDTO } from "../dtos/cart.dto";
+import { AddToCartDTO, UpdateCartDTO } from "../dtos/cart.dto";
 import { ApiResponseHelper } from "../utils/apihelper.util";
 import { Request, Response } from "express";
-
-interface QueryParams {
-    page?: string;
-    limit?: string;
-    search?: string;
-    status?: string;
-}
+import mongoose from "mongoose";
 
 const cartService = new CartService();
 
 export class CartController {
-    // POST /api/cart - add item to cart
+    // POST /api/cart
     async addToCart(req: Request, res: Response) {
         try {
             const customerId = (req.user as any)._id.toString();
@@ -31,23 +25,24 @@ export class CartController {
                 res,
                 cartItem,
                 "Item added to cart successfully",
+                200
             );
-        } catch (error: Error | any | unknown) {
-            return ApiResponseHelper.error(
-                res,
-                error.message || "Internal Server Error",
-                error.status || 500,
-            );
+        } catch (error: any) {
+            let status = 500;
+            let message = error.message || "Internal Server Error";
+            if (error.message === "Product not found") status = 404;
+            else if (error.message === "Product is not available") status = 400;
+            else if (error.message === "Insufficient stock") status = 400;
+            return ApiResponseHelper.error(res, message, status);
         }
     }
 
-    // GET /api/cart/my - get current user's active cart
     async getMyCart(req: Request, res: Response) {
         try {
             const customerId = (req.user as any)._id.toString();
             const cart = await cartService.getMyCart(customerId);
             return ApiResponseHelper.success(res, cart, "Cart retrieved successfully");
-        } catch (error: Error | any | unknown) {
+        } catch (error: any) {
             return ApiResponseHelper.error(
                 res,
                 error.message || "Internal Server Error",
@@ -56,20 +51,31 @@ export class CartController {
         }
     }
 
-    // GET /api/cart/:id - get single cart item by id
     async getCartItemById(req: Request, res: Response) {
         try {
             const cartItemId = req.params.id as string;
             if (!cartItemId) {
                 return ApiResponseHelper.error(res, "Cart item ID is required", 400);
             }
+            if (!mongoose.Types.ObjectId.isValid(cartItemId)) {
+                return ApiResponseHelper.error(res, "Invalid cart item ID", 400);
+            }
             const cartItem = await cartService.getCartItemById(cartItemId);
+            if (!cartItem) {
+                return ApiResponseHelper.error(res, "Cart item not found", 404);
+            }
             return ApiResponseHelper.success(
                 res,
                 cartItem,
                 "Cart item retrieved successfully",
             );
-        } catch (error: Error | any | unknown) {
+        } catch (error: any) {
+            if (error.message === "Cart item not found") {
+                return ApiResponseHelper.error(res, "Cart item not found", 404);
+            }
+            if (error.name === "CastError") {
+                return ApiResponseHelper.error(res, "Invalid cart item ID", 400);
+            }
             return ApiResponseHelper.error(
                 res,
                 error.message || "Internal Server Error",
@@ -78,35 +84,34 @@ export class CartController {
         }
     }
 
-    // GET /api/admin/cart - get all cart items paginated (admin only)
     async getAllCartsPaginated(req: Request, res: Response) {
         try {
-            const { page, limit, search, status }: QueryParams = req.query;
-            const pageNum = parseInt(page || "1");
-            const limitNum = parseInt(limit || "10");
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const search = req.query.search as string | undefined;
+            const status = req.query.status as string | undefined;
 
-            const { data, total } = await cartService.getAllCartsPaginated(
-                pageNum,
-                limitNum,
+            const result = await cartService.getAllCartsPaginated(
+                page,
+                limit,
                 search,
                 status,
             );
 
-            const pagination = {
-                page: pageNum,
-                limit: limitNum,
-                total,
-                totalPages: Math.ceil(total / limitNum) || 1,
-            };
-
             return ApiResponseHelper.success(
                 res,
-                data,
-                "Cart items retrieved successfully",
-                200,
-                pagination,
+                {
+                    data: result.data,
+                    pagination: {
+                        total: result.total,
+                        page,
+                        limit,
+                        totalPages: Math.ceil(result.total / limit),
+                    },
+                },
+                "Cart items fetched successfully",
             );
-        } catch (error: Error | any | unknown) {
+        } catch (error: any) {
             return ApiResponseHelper.error(
                 res,
                 error.message || "Internal Server Error",
@@ -115,11 +120,13 @@ export class CartController {
         }
     }
 
-    // PUT /api/cart/:id - update cart item quantity
     async updateCartItem(req: Request, res: Response) {
         try {
             const customerId = (req.user as any)._id.toString();
             const cartItemId = req.params.id as string;
+            if (!mongoose.Types.ObjectId.isValid(cartItemId)) {
+                return ApiResponseHelper.error(res, "Invalid cart item ID", 400);
+            }
             const cartData = UpdateCartDTO.safeParse(req.body);
             if (!cartData.success) {
                 return ApiResponseHelper.error(
@@ -138,41 +145,48 @@ export class CartController {
                 updated,
                 "Cart item updated successfully",
             );
-        } catch (error: Error | any | unknown) {
-            return ApiResponseHelper.error(
-                res,
-                error.message || "Internal Server Error",
-                error.status || 500,
-            );
+        } catch (error: any) {
+            let status = 500;
+            let message = error.message || "Internal Server Error";
+            if (error.message === "Cart item not found") status = 404;
+            else if (error.message === "You can only update your own cart") status = 403;
+            else if (error.message === "Only active cart items can be updated") status = 400;
+            else if (error.name === "CastError") status = 400;
+            return ApiResponseHelper.error(res, message, status);
         }
     }
 
-    // PUT /api/cart/:id/checkout - checkout a cart item
     async checkoutCartItem(req: Request, res: Response) {
         try {
             const customerId = (req.user as any)._id.toString();
             const cartItemId = req.params.id as string;
+            if (!mongoose.Types.ObjectId.isValid(cartItemId)) {
+                return ApiResponseHelper.error(res, "Invalid cart item ID", 400);
+            }
             const updated = await cartService.checkoutCartItem(cartItemId, customerId);
             return ApiResponseHelper.success(
                 res,
                 updated,
                 "Cart item checked out successfully",
             );
-        } catch (error: Error | any | unknown) {
-            return ApiResponseHelper.error(
-                res,
-                error.message || "Internal Server Error",
-                error.status || 500,
-            );
+        } catch (error: any) {
+            let status = 500;
+            let message = error.message || "Internal Server Error";
+            if (error.message === "Cart item not found") status = 404;
+            else if (error.message === "Only active cart items can be checked out") status = 400;
+            else if (error.name === "CastError") status = 400;
+            return ApiResponseHelper.error(res, message, status);
         }
     }
 
-    // PUT /api/cart/:id/cancel - cancel a cart item
     async cancelCartItem(req: Request, res: Response) {
         try {
             const customerId = (req.user as any)._id.toString();
             const isAdmin = (req.user as any).role === "admin";
             const cartItemId = req.params.id as string;
+            if (!mongoose.Types.ObjectId.isValid(cartItemId)) {
+                return ApiResponseHelper.error(res, "Invalid cart item ID", 400);
+            }
             const updated = await cartService.cancelCartItem(
                 cartItemId,
                 customerId,
@@ -183,29 +197,34 @@ export class CartController {
                 updated,
                 "Cart item cancelled successfully",
             );
-        } catch (error: Error | any | unknown) {
-            return ApiResponseHelper.error(
-                res,
-                error.message || "Internal Server Error",
-                error.status || 500,
-            );
+        } catch (error: any) {
+            let status = 500;
+            let message = error.message || "Internal Server Error";
+            if (error.message === "Cart item not found") status = 404;
+            else if (error.message === "You can only cancel your own cart items") status = 403;
+            else if (error.message === "This cart item cannot be cancelled") status = 400;
+            else if (error.name === "CastError") status = 400;
+            return ApiResponseHelper.error(res, message, status);
         }
     }
 
-    // DELETE /api/cart/:id - remove cart item
     async deleteCartItem(req: Request, res: Response) {
         try {
             const customerId = (req.user as any)._id.toString();
             const isAdmin = (req.user as any).role === "admin";
             const cartItemId = req.params.id as string;
+            if (!mongoose.Types.ObjectId.isValid(cartItemId)) {
+                return ApiResponseHelper.error(res, "Invalid cart item ID", 400);
+            }
             await cartService.deleteCartItem(cartItemId, customerId, isAdmin);
             return ApiResponseHelper.success(res, null, "Cart item removed successfully");
-        } catch (error: Error | any | unknown) {
-            return ApiResponseHelper.error(
-                res,
-                error.message || "Internal Server Error",
-                error.status || 500,
-            );
+        } catch (error: any) {
+            let status = 500;
+            let message = error.message || "Internal Server Error";
+            if (error.message === "Cart item not found") status = 404;
+            else if (error.message === "You can only delete your own cart items") status = 403;
+            else if (error.name === "CastError") status = 400;
+            return ApiResponseHelper.error(res, message, status);
         }
     }
 }

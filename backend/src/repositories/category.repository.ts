@@ -25,7 +25,7 @@ export class CategoryMongoRepository {
     // update a category by id
     async update(id: string, data: Partial<ICategory>): Promise<ICategory | null> {
         return CategoryModel.findByIdAndUpdate(id, data, {
-            new: true,
+            returnDocument: 'after',
             runValidators: true,
         }).lean() as unknown as ICategory | null;
     }

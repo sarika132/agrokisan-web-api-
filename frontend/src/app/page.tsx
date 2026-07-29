@@ -2,24 +2,67 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/UI_UX/button";
-import Navbar from "@/components/Navbar"; // ✅ Import Navbar
+import Navbar from "@/components/Navbar";
 import { useAuth } from "@/lib/context/AuthContext";
 import bgImage from "@/app/assets/bg.jpg";
-import farmImage from "@/app/assets/farm.jpg";
+import bg2Image from "@/app/assets/bg2.jpg";
 
 export default function HomePage() {
   const { user } = useAuth();
+  const router = useRouter();
+
+  const handleShopNow = () => {
+    if (user) {
+      router.push("/products");
+    } else {
+      router.push("/register");
+    }
+  };
+
+  const handleCollectionClick = (slug: string) => {
+    if (user) {
+      router.push(`/collections/${slug}`);
+    } else {
+      router.push("/login");
+    }
+  };
+
+  const heroImage = user ? bg2Image : bgImage;
+
+  // Collection data
+  const collections = [
+    {
+      slug: "seeds",
+      title: "Seed Variety",
+      image: "/images/categories/seeds.png",
+    },
+    {
+      slug: "fertilizers",
+      title: "Fertilizers and Pesticides",
+      image: "/images/categories/fertilizers.png",
+    },
+    {
+      slug: "tools",
+      title: "Agriculture Tools",
+      image: "/images/categories/tools.png",
+    },
+    {
+      slug: "equipment",
+      title: "Agriculture Equipment",
+      image: "/images/categories/equipment.png",
+    },
+  ];
 
   return (
     <div>
-      {/* ✅ Add Navbar here */}
       <Navbar />
 
       {/* Hero Section */}
       <section className="relative h-[500px] w-full">
         <Image
-          src={bgImage}
+          src={heroImage}
           alt="Agriculture"
           fill
           priority
@@ -37,7 +80,10 @@ export default function HomePage() {
           <p className="text-lg md:text-xl mt-2 text-gray-200">
             for your convenience
           </p>
-          <Button className="mt-6 bg-green-700 hover:bg-green-800 text-white px-8 py-3 text-lg">
+          <Button
+            onClick={handleShopNow}
+            className="mt-6 bg-green-700 hover:bg-green-800 text-white px-8 py-3 text-lg"
+          >
             SHOP NOW
           </Button>
         </div>
@@ -56,76 +102,52 @@ export default function HomePage() {
           OUR COLLECTIONS
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
-          {/* Seed Variety */}
-          <div className="bg-white rounded-xl shadow-md border border-green-100 overflow-hidden hover:shadow-lg transition">
-            <div className="h-48 bg-green-100 flex items-center justify-center">
-              <span className="text-6xl">🌱</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+          {collections.map((collection) => (
+            <div
+              key={collection.slug}
+              onClick={() => handleCollectionClick(collection.slug)}
+              className="bg-white rounded-xl shadow-md border border-green-100 overflow-hidden hover:shadow-lg transition cursor-pointer group"
+            >
+              <div className="h-48 bg-green-100 flex items-center justify-center relative">
+                {/* Image with fallback to emoji if not found */}
+                <Image
+                  src={collection.image}
+                  alt={collection.title}
+                  width={192}
+                  height={192}
+                  className="object-cover w-full h-full"
+                  onError={(e) => {
+                    // If image fails, show an emoji placeholder
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                    const parent = target.parentElement;
+                    if (parent) {
+                      const span = document.createElement("span");
+                      span.className = "text-6xl";
+                      span.textContent = "🌱";
+                      parent.appendChild(span);
+                    }
+                  }}
+                />
+              </div>
+              <div className="p-5 flex flex-col items-center text-center">
+                <h3 className="font-bold text-gray-800 text-lg">
+                  {collection.title}
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">More Items</p>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCollectionClick(collection.slug);
+                  }}
+                  className="mt-3 bg-green-700 hover:bg-green-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition"
+                >
+                  View Collection
+                </button>
+              </div>
             </div>
-            <div className="p-5">
-              <h3 className="font-bold text-gray-800 text-lg">Seed Variety</h3>
-              <Link
-                href="/collections/seeds"
-                className="text-green-700 text-sm font-medium hover:underline inline-block mt-2"
-              >
-                View Collection →
-              </Link>
-            </div>
-          </div>
-
-          {/* Fertilizers and Pesticides */}
-          <div className="bg-white rounded-xl shadow-md border border-green-100 overflow-hidden hover:shadow-lg transition">
-            <div className="h-48 bg-green-100 flex items-center justify-center">
-              <span className="text-6xl">🌿</span>
-            </div>
-            <div className="p-5">
-              <h3 className="font-bold text-gray-800 text-lg">
-                Fertilizers and Pesticides
-              </h3>
-              <Link
-                href="/collections/fertilizers"
-                className="text-green-700 text-sm font-medium hover:underline inline-block mt-2"
-              >
-                View Collection →
-              </Link>
-            </div>
-          </div>
-
-          {/* Agriculture Tools */}
-          <div className="bg-white rounded-xl shadow-md border border-green-100 overflow-hidden hover:shadow-lg transition">
-            <div className="h-48 bg-green-100 flex items-center justify-center">
-              <span className="text-6xl">🔧</span>
-            </div>
-            <div className="p-5">
-              <h3 className="font-bold text-gray-800 text-lg">
-                Agriculture Tools
-              </h3>
-              <Link
-                href="/collections/tools"
-                className="text-green-700 text-sm font-medium hover:underline inline-block mt-2"
-              >
-                View Collection →
-              </Link>
-            </div>
-          </div>
-
-          {/* Agriculture Equipment */}
-          <div className="bg-white rounded-xl shadow-md border border-green-100 overflow-hidden hover:shadow-lg transition">
-            <div className="h-48 bg-green-100 flex items-center justify-center">
-              <span className="text-6xl">🚜</span>
-            </div>
-            <div className="p-5">
-              <h3 className="font-bold text-gray-800 text-lg">
-                Agriculture Equipment
-              </h3>
-              <Link
-                href="/collections/equipment"
-                className="text-green-700 text-sm font-medium hover:underline inline-block mt-2"
-              >
-                View Collection →
-              </Link>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
@@ -141,16 +163,12 @@ export default function HomePage() {
             agriculture more efficient and reliable.
           </p>
 
-          {/* Footer Links */}
           <div className="flex justify-center gap-8 mt-8 text-sm">
             <Link href="/" className="text-green-700 hover:underline">
               Home
             </Link>
             <Link href="/about" className="text-green-700 hover:underline">
               About us
-            </Link>
-            <Link href="/delivery" className="text-green-700 hover:underline">
-              Delivery
             </Link>
           </div>
         </div>

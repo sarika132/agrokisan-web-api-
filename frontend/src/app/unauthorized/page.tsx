@@ -14,7 +14,7 @@ export default function Page() {
                 </h1>
                 <p className="text-sm text-[#51636a] mb-8">
                     You don't have permission to view this page. This is
-                    for administrators only.
+                    for admins only.
                 </p>
 
                 <Link

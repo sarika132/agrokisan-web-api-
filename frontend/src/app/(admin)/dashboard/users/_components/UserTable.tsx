@@ -26,7 +26,7 @@ interface User {
     contactNumber: string;
     role: string;
     createdAt: string;
-    profileImage?: string;
+    imageUrl?: string;
 }
 
 interface Pagination {
@@ -49,7 +49,6 @@ export default function UserTable({ users, pagination, search }: UserTableProps)
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [isPending, startTransition] = useTransition();
 
-    // handle search - wraps router.push in transition so it doesn't block UI
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setSearchTerm(value);
@@ -58,12 +57,10 @@ export default function UserTable({ users, pagination, search }: UserTableProps)
         });
     };
 
-    // handle page change - updates url with new page number
     const handlePageChange = (newPage: number) => {
         router.push(`/dashboard/users?page=${newPage}&search=${searchTerm}`);
     };
 
-    // handle delete - calls action and shows toast
     const handleDelete = async (id: string) => {
         const result = await handleDeleteUser(id);
         if (result.success) {
@@ -74,13 +71,11 @@ export default function UserTable({ users, pagination, search }: UserTableProps)
         }
     };
 
-    // open dialog in edit mode with selected user prefilled
     const handleEdit = (user: User) => {
         setSelectedUser(user);
         setDialogOpen(true);
     };
 
-    // open dialog in create mode with empty form
     const handleCreate = () => {
         setSelectedUser(null);
         setDialogOpen(true);
@@ -90,8 +85,11 @@ export default function UserTable({ users, pagination, search }: UserTableProps)
         <div className="bg-white rounded-xl border border-gray-200 p-6">
             {/* Search Bar + Add User Button */}
             <div className="flex items-center justify-between mb-6">
-                <div className={`flex items-center gap-3 border border-gray-200 rounded-lg px-4 py-2.5 flex-1 mr-4 ${isPending ? "opacity-60" : ""}`}>
-                    <SearchIcon className="h-4 w-4 text-gray-400 flex-0" />
+                <div
+                    className={`flex items-center gap-3 border border-gray-200 rounded-lg px-4 py-2.5 flex-1 mr-4 ${isPending ? "opacity-60" : ""
+                        }`}
+                >
+                    <SearchIcon className="h-4 w-4 text-gray-400 shrink-0" />
                     <input
                         type="text"
                         value={searchTerm}
@@ -102,7 +100,7 @@ export default function UserTable({ users, pagination, search }: UserTableProps)
                 </div>
                 <Button
                     onClick={handleCreate}
-                    className="bg-cyan-500 hover:bg-cyan-600 flex items-center gap-2"
+                    className="bg-green-700 hover:bg-green-800 flex items-center gap-2 text-white"
                 >
                     <PlusIcon className="h-4 w-4" />
                     Add User
@@ -111,12 +109,9 @@ export default function UserTable({ users, pagination, search }: UserTableProps)
 
             {/* Empty State */}
             {users.length === 0 ? (
-                <div className="text-center py-12 text-gray-400 text-sm">
-                    No customers found.
-                </div>
+                <div className="text-center py-12 text-gray-400 text-sm">No customers found.</div>
             ) : (
                 <>
-                    {/* Table */}
                     <table className="w-full">
                         <thead>
                             <tr className="border-b border-gray-100">
@@ -131,16 +126,16 @@ export default function UserTable({ users, pagination, search }: UserTableProps)
                         <tbody>
                             {users.map((user) => (
                                 <tr key={user._id} className="border-b border-gray-50 hover:bg-gray-50">
-                                    <td className="py-4 px-4 text-sm font-medium text-gray-800">
-                                        {user.fullName}
-                                    </td>
+                                    <td className="py-4 px-4 text-sm font-medium text-gray-800">{user.fullName}</td>
                                     <td className="py-4 px-4 text-sm text-gray-500">{user.email}</td>
                                     <td className="py-4 px-4 text-sm text-gray-500">{user.contactNumber}</td>
                                     <td className="py-4 px-4">
-                                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${user.role === "admin"
-                                            ? "bg-purple-100 text-purple-700"
-                                            : "bg-gray-100 text-gray-600"
-                                            }`}>
+                                        <span
+                                            className={`text-xs font-medium px-2.5 py-1 rounded-full ${user.role === "admin"
+                                                    ? "bg-purple-100 text-purple-700"
+                                                    : "bg-gray-100 text-gray-600"
+                                                }`}
+                                        >
                                             {user.role}
                                         </span>
                                     </td>
@@ -149,26 +144,28 @@ export default function UserTable({ users, pagination, search }: UserTableProps)
                                     </td>
                                     <td className="py-4 px-4">
                                         <div className="flex items-center gap-3">
-                                            {/* view user detail */}
+                                            {/* View details */}
                                             <button
                                                 onClick={() => router.push(`/dashboard/users/${user._id}`)}
-                                                className="text-cyan-500 hover:text-cyan-600"
+                                                className="text-green-600 hover:text-green-700"
+                                                title="View details"
                                             >
                                                 <EyeIcon className="h-4 w-4" />
                                             </button>
 
-                                            {/* edit user */}
+                                            {/* Edit user */}
                                             <button
                                                 onClick={() => handleEdit(user)}
-                                                className="text-cyan-500 hover:text-cyan-600"
+                                                className="text-green-600 hover:text-green-700"
+                                                title="Edit user"
                                             >
                                                 <PencilIcon className="h-4 w-4" />
                                             </button>
 
-                                            {/* delete user with confirmation */}
+                                            {/* Delete with confirmation */}
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
-                                                    <button className="text-red-500 hover:text-red-600">
+                                                    <button className="text-red-500 hover:text-red-600" title="Delete user">
                                                         <Trash2Icon className="h-4 w-4" />
                                                     </button>
                                                 </AlertDialogTrigger>
@@ -176,8 +173,7 @@ export default function UserTable({ users, pagination, search }: UserTableProps)
                                                     <AlertDialogHeader>
                                                         <AlertDialogTitle>Delete this user?</AlertDialogTitle>
                                                         <AlertDialogDescription>
-                                                            This will permanently delete{" "}
-                                                            <strong>{user.fullName}</strong>. This action cannot be undone.
+                                                            This will permanently delete <strong>{user.fullName}</strong>. This action cannot be undone.
                                                         </AlertDialogDescription>
                                                     </AlertDialogHeader>
                                                     <AlertDialogFooter>
@@ -219,8 +215,8 @@ export default function UserTable({ users, pagination, search }: UserTableProps)
                                         key={i}
                                         onClick={() => handlePageChange(i + 1)}
                                         className={`px-3 py-1.5 text-sm border rounded-lg ${pagination.page === i + 1
-                                            ? "bg-cyan-500 text-white border-cyan-500"
-                                            : "border-gray-200 hover:bg-gray-50"
+                                                ? "bg-green-700 text-white border-green-700"
+                                                : "border-gray-200 hover:bg-gray-50"
                                             }`}
                                     >
                                         {i + 1}

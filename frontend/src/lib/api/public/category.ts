@@ -4,7 +4,7 @@ import { API } from "../endpoints";
 // fetch all categories for dropdowns - used in product form
 export const getPublicCategories = async () => {
     try {
-        const response = await axiosInstance.get(API.landing.CATEGORIES);
+        const response = await axiosInstance.get(API.public.CATEGORIES);
         return response.data;
     } catch (error: Error | any) {
         throw new Error(

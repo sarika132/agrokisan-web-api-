@@ -1,145 +1,106 @@
-import { CartMongoRepository } from "../repositories/cart.repository";
-import { AddToCartDTO, UpdateCartDTO } from "../dtos/cart.dto";
-import { ICart } from "../models/cart.model";
-import { HttpException } from "../exceptions/http-exception";
-import { ProductMongoRepository } from "../repositories/product.repository";
+import { CartMongoRepository } from '../repositories/cart.repository';
+import { ProductMongoRepository } from '../repositories/product.repository';
+import { HttpException } from '../exceptions/http-exception';
 
-const cartRepository = new CartMongoRepository();
-const productRepository = new ProductMongoRepository();
+const cartRepo = new CartMongoRepository();
+const productRepo = new ProductMongoRepository();
 
 export class CartService {
-    // add a product to cart - calculates totalPrice and generates custom cartId
-    async addToCart(
-        data: AddToCartDTO,
-        customerId: string,
-    ): Promise<ICart> {
-        // check if product exists and is available
-        const product = await productRepository.getProductById(data.productId);
+    async addToCart({ productId, quantity }: { productId: string; quantity: number }, customerId: string) {
+        const product = await productRepo.getProductById(productId);
         if (!product) {
-            throw new HttpException(404, "Product not found");
+            throw new HttpException(404, 'Product not found');
         }
         if (!product.isAvailable) {
-            throw new HttpException(400, "Product is not available");
+            throw new HttpException(400, 'Product is not available');
         }
-
-        // calculate total price: quantity * current product price
+        if (product.stock < quantity) {
+            throw new HttpException(400, 'Insufficient stock');
+        }
         const priceAtAdded = product.price;
-        const totalPrice = data.quantity * priceAtAdded;
-
-        // create cart item first to get mongodb _id for generating cartId
-        const cartItem = await cartRepository.createCartItem({
+        const totalPrice = quantity * priceAtAdded;
+        const cartItem = await cartRepo.createCartItem({
             customerId,
-            productId: data.productId,
-            quantity: data.quantity,
+            productId,
+            quantity,
             priceAtAdded,
             totalPrice,
-            status: "active",
-        } as unknown as Partial<ICart>);
-
-        // generate custom readable cartId using last 6 chars of mongodb _id
-        const cartId = "CART" + cartItem._id.toString().slice(-6).toUpperCase();
-
-        // update cart item with the generated cartId
-        await cartRepository.updateCartId(cartItem._id.toString(), cartId);
-
-        return { ...cartItem, cartId } as ICart;
+            status: 'active',
+        });
+        const cartId = `CART${cartItem._id.toString().slice(-6).toUpperCase()}`;
+        await cartRepo.updateCartId(cartItem._id.toString(), cartId);
+        // Return populated item
+        return await cartRepo.getCartItemById(cartItem._id.toString());
     }
 
-    // get a single cart item by mongodb id
-    async getCartItemById(id: string): Promise<ICart> {
-        const cartItem = await cartRepository.getCartItemById(id);
-        if (!cartItem) {
-            throw new HttpException(404, "Cart item not found");
+    async getMyCart(customerId: string) {
+        return cartRepo.getCartByCustomerId(customerId);
+    }
+
+    async getCartItemById(id: string) {
+        const item = await cartRepo.getCartItemById(id);
+        if (!item) {
+            throw new HttpException(404, 'Cart item not found');
         }
-        return cartItem;
+        return item;
     }
 
-    // get all active cart items for the logged in customer
-    async getMyCart(customerId: string): Promise<ICart[]> {
-        return await cartRepository.getCartByCustomerId(customerId);
-    }
-
-    // get all cart items for admin with pagination, search and status filter
-    async getAllCartsPaginated(
-        page: number,
-        limit: number,
-        search?: string,
-        status?: string,
-    ): Promise<{ data: ICart[]; total: number }> {
-        return await cartRepository.getAllPaginated(page, limit, search, status);
-    }
-
-    // update quantity of a cart item - recalculates totalPrice
-    async updateCartItem(
-        id: string,
-        data: UpdateCartDTO,
-        customerId: string,
-    ): Promise<ICart> {
-        const cartItem = await cartRepository.getCartItemById(id);
+    async updateCartItem(id: string, { quantity }: { quantity: number }, customerId: string) {
+        // Use raw to avoid populated `customerId` becoming an object
+        const cartItem = await cartRepo.getCartItemRaw(id);
         if (!cartItem) {
-            throw new HttpException(404, "Cart item not found");
+            throw new HttpException(404, 'Cart item not found');
         }
         if (cartItem.customerId.toString() !== customerId) {
-            throw new HttpException(403, "You can only update your own cart");
+            throw new HttpException(403, 'You can only update your own cart');
         }
-        if (cartItem.status !== "active") {
-            throw new HttpException(400, "Only active cart items can be updated");
+        if (cartItem.status !== 'active') {
+            throw new HttpException(400, 'Only active cart items can be updated');
         }
-
-        const totalPrice = data.quantity * cartItem.priceAtAdded;
-        const updated = await cartRepository.updateCartItem(
-            id,
-            data.quantity,
-            totalPrice,
-        );
-        return updated!;
+        const totalPrice = quantity * cartItem.priceAtAdded;
+        return cartRepo.updateCartItem(id, quantity, totalPrice);
     }
 
-    // checkout cart item - user initiates checkout
-    async checkoutCartItem(id: string, customerId: string): Promise<ICart> {
-        const cartItem = await cartRepository.getCartItemById(id);
+    async checkoutCartItem(id: string, customerId: string) {
+        const cartItem = await cartRepo.getCartItemRaw(id);
         if (!cartItem) {
-            throw new HttpException(404, "Cart item not found");
+            throw new HttpException(404, 'Cart item not found');
         }
         if (cartItem.customerId.toString() !== customerId) {
-            throw new HttpException(403, "You can only checkout your own cart");
+            throw new HttpException(403, 'You can only checkout your own cart');
         }
-        if (cartItem.status !== "active") {
-            throw new HttpException(400, "Only active cart items can be checked out");
+        if (cartItem.status !== 'active') {
+            throw new HttpException(400, 'Only active cart items can be checked out');
         }
-        const updated = await cartRepository.updateStatus(id, "checkedout");
-        return updated!;
+        return cartRepo.updateStatus(id, 'checkedout');
     }
 
-    // cancel cart item - user can only cancel active items
-    async cancelCartItem(
-        id: string,
-        customerId: string,
-        isAdmin: boolean,
-    ): Promise<ICart> {
-        const cartItem = await cartRepository.getCartItemById(id);
+    async cancelCartItem(id: string, customerId: string, isAdmin: boolean) {
+        const cartItem = await cartRepo.getCartItemRaw(id);
         if (!cartItem) {
-            throw new HttpException(404, "Cart item not found");
+            throw new HttpException(404, 'Cart item not found');
         }
         if (!isAdmin && cartItem.customerId.toString() !== customerId) {
-            throw new HttpException(403, "You can only cancel your own cart items");
+            throw new HttpException(403, 'You can only cancel your own cart items');
         }
-        if (cartItem.status === "checkedout" || cartItem.status === "cancelled") {
-            throw new HttpException(400, "This cart item cannot be cancelled");
+        if (cartItem.status === 'checkedout' || cartItem.status === 'cancelled') {
+            throw new HttpException(400, 'This cart item cannot be cancelled');
         }
-        const updated = await cartRepository.updateStatus(id, "cancelled");
-        return updated!;
+        return cartRepo.updateStatus(id, 'cancelled');
     }
 
-    // remove cart item permanently
-    async deleteCartItem(id: string, customerId: string, isAdmin: boolean): Promise<void> {
-        const cartItem = await cartRepository.getCartItemById(id);
+    async deleteCartItem(id: string, customerId: string, isAdmin: boolean) {
+        const cartItem = await cartRepo.getCartItemRaw(id);
         if (!cartItem) {
-            throw new HttpException(404, "Cart item not found");
+            throw new HttpException(404, 'Cart item not found');
         }
         if (!isAdmin && cartItem.customerId.toString() !== customerId) {
-            throw new HttpException(403, "You can only delete your own cart items");
+            throw new HttpException(403, 'You can only delete your own cart items');
         }
-        await cartRepository.deleteCartItem(id);
+        return cartRepo.deleteCartItem(id);
+    }
+
+    async getAllCartsPaginated(page: number, limit: number, search?: string, status?: string) {
+        return cartRepo.getAllPaginated(page, limit, search, status);
     }
 }

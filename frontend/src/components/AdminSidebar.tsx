@@ -17,8 +17,7 @@ const sidebarItems = [
     { icon: <UserIcon className="h-5 w-5" />, label: "Profile", path: "/profile" },
     { icon: <KeyRoundIcon className="h-5 w-5" />, label: "Change Password", path: "/change-password" },
     { icon: <PackageIcon className="h-5 w-5" />, label: "Products", path: "/products" },
-    { icon: <ShoppingBagIcon className="h-5 w-5" />, label: "Orders", path: "/orders" },
-    { icon: <SettingsIcon className="h-5 w-5" />, label: "Settings", path: "/settings" },
+    { icon: <ShoppingBagIcon className="h-5 w-5" />, label: "Cart", path: "/orders" },
 ];
 
 export default function AdminSidebar() {

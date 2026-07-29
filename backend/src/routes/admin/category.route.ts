@@ -1,43 +1,23 @@
 import { Router } from "express";
 import { AdminCategoryController } from "../../controllers/admin/category.collection";
-import {
-    adminMiddleware,
-    authorizedMiddleware,
-} from "../../middlewares/authorized.middleware";
+import { adminMiddleware, authorizedMiddleware } from "../../middlewares/authorized.middleware";
 
 const adminCategoryRoute = Router();
 const categoryController = new AdminCategoryController();
 
-// admin only - get all categories
-adminCategoryRoute.get(
-    "/",
-    authorizedMiddleware,
-    adminMiddleware,
-    categoryController.getAllCategories,
-);
+// All routes require admin authentication
+adminCategoryRoute.use(authorizedMiddleware, adminMiddleware);
 
-// admin only - create category
-adminCategoryRoute.post(
-    "/create",
-    authorizedMiddleware,
-    adminMiddleware,
-    categoryController.createCategory,
-);
+// GET /api/admin/category – (optional, not tested)
+adminCategoryRoute.get("/", categoryController.getAllCategories);
 
-// admin only - update category
-adminCategoryRoute.put(
-    "/update/:id",
-    authorizedMiddleware,
-    adminMiddleware,
-    categoryController.updateCategory,
-);
+// POST /api/admin/category/create – create
+adminCategoryRoute.post("/create", categoryController.createCategory);
 
-// admin only - delete category
-adminCategoryRoute.delete(
-    "/delete/:id",
-    authorizedMiddleware,
-    adminMiddleware,
-    categoryController.deleteCategory,
-);
+// PUT /api/admin/category/update/:id – update
+adminCategoryRoute.put("/update/:id", categoryController.updateCategory);
+
+// DELETE /api/admin/category/delete/:id – delete
+adminCategoryRoute.delete("/delete/:id", categoryController.deleteCategory);
 
 export default adminCategoryRoute;

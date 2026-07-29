@@ -1,6 +1,8 @@
 import { handleGetAllUsers } from "@/lib/actions/admin/user-action";
 import UserTable from "./_components/UserTable";
 
+export const dynamic = "force-dynamic";
+
 export default async function UsersPage({
     searchParams,
 }: {
@@ -15,22 +17,20 @@ export default async function UsersPage({
     const result = await handleGetAllUsers({ page, limit, search });
 
     if (!result.success) {
-        return (
-            <div className="p-6">
-                <h1 className="text-red-500 text-xl">API Error</h1>
-                <pre>{JSON.stringify(result, null, 2)}</pre>
-            </div>
-        );
+        throw new Error(result.message);
     }
+
+    const customers = (result.data ?? []).filter(
+        (user: any) => user.role === "user",
+    );
 
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-semibold mb-6">
+            <h1 className="text-xl text-slate-600 font-medium mb-6">
                 Customer Management
             </h1>
-
             <UserTable
-                users={result.data}
+                users={customers}
                 pagination={result.pagination}
                 search={search}
             />

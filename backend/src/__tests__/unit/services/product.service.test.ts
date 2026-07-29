@@ -9,6 +9,8 @@ describe("Unit: ProductService", () => {
     let productId: string;
 
     beforeAll(async () => {
+        // Ensure Category model is registered
+        await CategoryModel.findOne({});
         await ProductModel.deleteMany({
             name: { $in: ["Service Test Product", "Service Test Product Updated"] },
         });
@@ -49,7 +51,9 @@ describe("Unit: ProductService", () => {
 
     test("should throw 404 for non-existing product id", async () => {
         const fakeId = new mongoose.Types.ObjectId().toString();
-        await expect(productService.getProductById(fakeId)).rejects.toThrow("Product not found");
+        await expect(productService.getProductById(fakeId)).rejects.toThrow(
+            "Product not found"
+        );
     });
 
     test("should update a product", async () => {
@@ -62,7 +66,7 @@ describe("Unit: ProductService", () => {
     test("should throw 404 when updating non-existing product", async () => {
         const fakeId = new mongoose.Types.ObjectId().toString();
         await expect(
-            productService.updateProduct(fakeId, { name: "Doesn't Matter" } as any),
+            productService.updateProduct(fakeId, { name: "Doesn't Matter" } as any)
         ).rejects.toThrow("Product not found");
     });
 
@@ -78,6 +82,8 @@ describe("Unit: ProductService", () => {
     });
 
     test("should throw 404 when deleting non-existing product", async () => {
-        await expect(productService.deleteProduct(productId)).rejects.toThrow("Product not found");
+        await expect(productService.deleteProduct(productId)).rejects.toThrow(
+            "Product not found"
+        );
     });
 });

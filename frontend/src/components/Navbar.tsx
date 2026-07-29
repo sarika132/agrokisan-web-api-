@@ -10,6 +10,21 @@ import { useAuth } from "@/lib/context/AuthContext";
 export default function Navbar() {
     const { isAuthenticated, loading } = useAuth();
 
+    const renderProtectedLink = (href: string, label: string) => {
+        if (isAuthenticated) {
+            return (
+                <Link href={href} className="font-medium hover:text-green-700 transition">
+                    {label}
+                </Link>
+            );
+        }
+        return (
+            <span className="font-medium cursor-default">
+                {label}
+            </span>
+        );
+    };
+
     return (
         <nav className="border-b bg-white shadow-sm">
             <div className="container mx-auto flex h-16 items-center justify-between px-6">
@@ -23,21 +38,10 @@ export default function Navbar() {
 
                 {/* Navigation Links */}
                 <div className="hidden md:flex items-center gap-8">
-                    <Link href="/" className="font-medium hover:text-green-700 transition">
-                        Home
-                    </Link>
-                    <Link href="/about" className="font-medium hover:text-green-700 transition">
-                        About
-                    </Link>
-                    <Link href="/services" className="font-medium hover:text-green-700 transition">
-                        Services
-                    </Link>
-                    <Link href="/products" className="font-medium hover:text-green-700 transition">
-                        Products
-                    </Link>
-                    <Link href="/contact" className="font-medium hover:text-green-700 transition">
-                        Contact
-                    </Link>
+                    {renderProtectedLink("/", "Home")}
+                    {renderProtectedLink("/products", "Products")}
+                    {renderProtectedLink("/collections", "Collection")}
+                    {renderProtectedLink("/cart", "Cart")}
                 </div>
 
                 {/* Auth Buttons / User Menu */}

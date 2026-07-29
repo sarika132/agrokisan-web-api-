@@ -10,4 +10,4 @@ export const CartSchema = z.object({
     status: z.enum(["active", "checkedout", "cancelled"]).default("active"),
 });
 
-export type CartType = z.infer<typeof CartSchema>; 
+export type CartType = z.infer<typeof CartSchema>;

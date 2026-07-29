@@ -16,22 +16,16 @@ describe("Collection API Integration Tests", () => {
         confirmPassword: "password123",
     };
 
-    // runs once before all tests
     beforeAll(async () => {
-        // clean up any leftover test data
         await UserModel.deleteOne({ email: adminUser.email });
         await CollectionModel.deleteOne({ name: "Tools" });
 
-        // register and login
         await request(app).post("/api/auth/register").send(adminUser);
-
-        // set role to admin directly in DB
         await UserModel.findOneAndUpdate(
             { email: adminUser.email },
-            { role: "admin" },
+            { role: "admin" }
         );
 
-        // login to get admin token
         const loginRes = await request(app).post("/api/auth/login").send({
             email: adminUser.email,
             password: adminUser.password,
@@ -39,149 +33,122 @@ describe("Collection API Integration Tests", () => {
         adminToken = loginRes.body.data.token;
     });
 
-    // runs once after all tests
     afterAll(async () => {
         await CollectionModel.deleteOne({ name: "Tools" });
         await UserModel.deleteOne({ email: adminUser.email });
     });
 
-    // 1. Get all collections (public) endpoint tests
     describe("GET /api/collections", () => {
         test("should return all collections without auth", async () => {
             const res = await request(app).get("/api/collections");
-
             expect(res.statusCode).toBe(200);
             expect(res.body.success).toBe(true);
             expect(Array.isArray(res.body.data)).toBe(true);
         });
     });
 
-    // 2. Create collection endpoint tests
-    describe("POST /api/admin/collections/create", () => {
+    describe("POST /api/admin/collection/create", () => {
         test("should return 401 if not logged in", async () => {
             const res = await request(app)
-                .post("/api/admin/collections/create")
+                .post("/api/admin/collection/create")
                 .send({
-                    name: "Agriculture Tools",
+                    name: "Tools",
                     description: "All agriculture tools",
                 });
-
             expect(res.statusCode).toBe(401);
             expect(res.body.success).toBe(false);
         });
 
         test("should validate missing fields", async () => {
             const res = await request(app)
-                .post("/api/admin/collections/create")
+                .post("/api/admin/collection/create")
                 .set("Authorization", `Bearer ${adminToken}`)
-                .send({
-                    // missing description
-                    name: "Agriculture Tools",
-                });
-
+                .send({ name: "Tools" });
             expect(res.statusCode).toBe(400);
             expect(res.body.success).toBe(false);
         });
 
         test("should validate invalid collection name", async () => {
             const res = await request(app)
-                .post("/api/admin/collections/create")
+                .post("/api/admin/collection/create")
                 .set("Authorization", `Bearer ${adminToken}`)
                 .send({
-                    name: "Invalid Collection Name", // not in enum
+                    name: "InvalidCollection",
                     description: "Some description",
                 });
-
             expect(res.statusCode).toBe(400);
             expect(res.body.success).toBe(false);
         });
 
         test("should create collection successfully", async () => {
             const res = await request(app)
-                .post("/api/admin/collections/create")
+                .post("/api/admin/collection/create")
                 .set("Authorization", `Bearer ${adminToken}`)
                 .send({
-                    name: "Agriculture Tools",
+                    name: "Tools",
                     description: "All agriculture hand tools for farming",
                 });
-
             expect(res.statusCode).toBe(200);
             expect(res.body.success).toBe(true);
             expect(res.body.message).toBe("Collection created successfully");
-            expect(res.body.data.name).toBe("Agriculture Tools");
-
-            // save collection id for later tests
+            expect(res.body.data.name).toBe("Tools");
             testCollectionId = res.body.data._id;
         });
 
         test("should return 400 if collection name already exists", async () => {
             const res = await request(app)
-                .post("/api/admin/collections/create")
+                .post("/api/admin/collection/create")
                 .set("Authorization", `Bearer ${adminToken}`)
                 .send({
-                    name: "Agriculture Tools", // same name as above
+                    name: "Tools",
                     description: "Duplicate collection",
                 });
-
             expect(res.statusCode).toBe(400);
             expect(res.body.success).toBe(false);
-            expect(res.body.message).toBe(
-                `Collection "Agriculture Tools" already exists`,
-            );
+            expect(res.body.message).toBe(`Collection "Tools" already exists`);
         });
     });
 
-    // 3. Update collection endpoint tests
-    describe("PUT /api/admin/collections/update/:id", () => {
+    describe("PUT /api/admin/collection/update/:id", () => {
         test("should return 401 if not logged in", async () => {
             const res = await request(app)
-                .put(`/api/admin/collections/update/${testCollectionId}`)
+                .put(`/api/admin/collection/update/${testCollectionId}`)
                 .send({ description: "Updated description" });
-
             expect(res.statusCode).toBe(401);
             expect(res.body.success).toBe(false);
         });
 
         test("should update collection successfully", async () => {
             const res = await request(app)
-                .put(`/api/admin/collections/update/${testCollectionId}`)
+                .put(`/api/admin/collection/update/${testCollectionId}`)
                 .set("Authorization", `Bearer ${adminToken}`)
-                .send({ description: "Updated agriculture tools description" });
-
+                .send({ description: "Updated tools description" });
             expect(res.statusCode).toBe(200);
             expect(res.body.success).toBe(true);
-            expect(res.body.data.description).toBe(
-                "Updated agriculture tools description",
-            );
+            expect(res.body.data.description).toBe("Updated tools description");
         });
 
         test("should return 404 if collection not found", async () => {
             const res = await request(app)
-                .put("/api/admin/collections/update/000000000000000000000000")
+                .put("/api/admin/collection/update/000000000000000000000000")
                 .set("Authorization", `Bearer ${adminToken}`)
                 .send({ description: "Updated description" });
-
             expect(res.statusCode).toBe(404);
             expect(res.body.success).toBe(false);
         });
     });
 
-    // 4. Delete collection endpoint tests
-    describe("DELETE /api/admin/collections/delete/:id", () => {
+    describe("DELETE /api/admin/collection/delete/:id", () => {
         test("should return 401 if not logged in", async () => {
-            const res = await request(app).delete(
-                `/api/admin/collections/delete/${testCollectionId}`,
-            );
-
+            const res = await request(app).delete(`/api/admin/collection/delete/${testCollectionId}`);
             expect(res.statusCode).toBe(401);
             expect(res.body.success).toBe(false);
         });
 
         test("should delete collection successfully", async () => {
             const res = await request(app)
-                .delete(`/api/admin/collections/delete/${testCollectionId}`)
+                .delete(`/api/admin/collection/delete/${testCollectionId}`)
                 .set("Authorization", `Bearer ${adminToken}`);
-
             expect(res.statusCode).toBe(200);
             expect(res.body.success).toBe(true);
             expect(res.body.message).toBe("Collection deleted successfully");
@@ -189,11 +156,8 @@ describe("Collection API Integration Tests", () => {
 
         test("should return 404 if collection not found", async () => {
             const res = await request(app)
-                .delete(
-                    "/api/admin/collections/delete/000000000000000000000000",
-                )
+                .delete("/api/admin/collection/delete/000000000000000000000000")
                 .set("Authorization", `Bearer ${adminToken}`);
-
             expect(res.statusCode).toBe(404);
             expect(res.body.success).toBe(false);
         });
